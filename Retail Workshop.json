@@ -1,0 +1,1622 @@
+{
+  "paragraphs": [
+    {
+      "text": "import scala.collection.mutable.ListBuffer\nimport org.apache.spark.sql._\nimport org.apache.spark.ml.feature.{RegexTokenizer, Tokenizer}\nimport org.apache.spark.sql.functions._\nimport org.apache.spark.ml.feature.StopWordsRemover\nimport scala.collection.mutable.WrappedArray\n//import org.apache.spark.ml.feature.{HashingTF, IDF}\n//import org.apache.spark.ml.feature.NGram\nimport org.apache.spark.ml.feature._\nimport org.apache.spark.ml.Pipeline\nimport org.apache.spark.ml.classification.LogisticRegression\nimport org.apache.spark.ml.evaluation.BinaryClassificationEvaluator\nimport org.apache.spark.ml.feature.{HashingTF, Tokenizer}\nimport org.apache.spark.ml.linalg.Vector\nimport org.apache.spark.ml.tuning.{CrossValidator, ParamGridBuilder}\nimport org.apache.spark.sql.Row\nimport org.apache.spark.ml.feature.QuantileDiscretizer\nimport org.apache.spark.ml.feature.Bucketizer\nimport org.apache.spark.ml.linalg._\nimport org.apache.spark.mllib.linalg.distributed._",
+      "user": "davidgillen@precocityllc.com",
+      "dateUpdated": "Jan 12, 2018 9:43:42 PM",
+      "config": {
+        "colWidth": 12.0,
+        "graph": {
+          "mode": "table",
+          "height": 300.0,
+          "optionOpen": false,
+          "keys": [],
+          "values": [],
+          "groups": [],
+          "scatter": {}
+        },
+        "enabled": true,
+        "editorMode": "ace/mode/scala"
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "paragraphProgress": {
+        "jobs": [],
+        "numCompletedTasks": 0,
+        "numTasks": 0,
+        "truncated": false
+      },
+      "jobName": "paragraph_1513310993398_-1922442312",
+      "id": "20171215-040953_335028120_q_6SHC1BMTXT1515702316",
+      "result": {
+        "code": "SUCCESS",
+        "type": "TEXT",
+        "msg": "\nimport scala.collection.mutable.ListBuffer\n\nimport org.apache.spark.sql._\n\nimport org.apache.spark.ml.feature.{RegexTokenizer, Tokenizer}\n\nimport org.apache.spark.sql.functions._\n\nimport org.apache.spark.ml.feature.StopWordsRemover\n\nimport scala.collection.mutable.WrappedArray\n\nimport org.apache.spark.ml.feature._\n\nimport org.apache.spark.ml.Pipeline\n\nimport org.apache.spark.ml.classification.LogisticRegression\n\nimport org.apache.spark.ml.evaluation.BinaryClassificationEvaluator\n\nimport org.apache.spark.ml.feature.{HashingTF, Tokenizer}\n\nimport org.apache.spark.ml.linalg.Vector\n\nimport org.apache.spark.ml.tuning.{CrossValidator, ParamGridBuilder}\n\nimport org.apache.spark.sql.Row\n\nimport org.apache.spark.ml.feature.QuantileDiscretizer\n\nimport org.apache.spark.ml.feature.Bucketizer\n\nimport org.apache.spark.ml.linalg._\n\nimport org.apache.spark.mllib.linalg.distributed._\n"
+      },
+      "dateCreated": "Dec 15, 2017 4:09:53 AM",
+      "dateStarted": "Jan 12, 2018 9:43:42 PM",
+      "dateFinished": "Jan 12, 2018 9:44:33 PM",
+      "status": "FINISHED",
+      "progressUpdateIntervalMs": 500
+    },
+    {
+      "text": "%md\n# Example Amazon Review\n![alternate text](http://maxmelnick.com/assets/images/03-project/review.png)",
+      "user": "davidgillen@precocityllc.com",
+      "dateUpdated": "Jan 12, 2018 7:29:02 PM",
+      "config": {
+        "colWidth": 12.0,
+        "graph": {
+          "mode": "table",
+          "height": 300.0,
+          "optionOpen": false,
+          "keys": [],
+          "values": [],
+          "groups": [],
+          "scatter": {}
+        },
+        "enabled": true,
+        "editorMode": "ace/mode/markdown",
+        "editorHide": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "jobName": "paragraph_1515702884898_-1072877679",
+      "id": "20180111-203444_1002099866_q_6SHC1BMTXT1515702316",
+      "result": {
+        "code": "SUCCESS",
+        "type": "HTML",
+        "msg": "\u003cdiv class\u003d\"markdown-body\"\u003e\n\u003ch1\u003eExample Amazon Review\u003c/h1\u003e\n\u003cp\u003e\u003cimg src\u003d\"http://maxmelnick.com/assets/images/03-project/review.png\" alt\u003d\"alternate text\" /\u003e\u003c/p\u003e\n\u003c/div\u003e"
+      },
+      "dateCreated": "Jan 11, 2018 8:34:44 PM",
+      "dateStarted": "Jan 12, 2018 7:28:45 PM",
+      "dateFinished": "Jan 12, 2018 7:28:47 PM",
+      "status": "FINISHED",
+      "progressUpdateIntervalMs": 500
+    },
+    {
+      "text": "%md\n# Ingestion from Azure Blob into Quoble/Spark Dataframe\n\n* Issue the createOrReplaceTempView command registers our `inputDf` dataframe as the Spark.SQL table `all_reviews` so that we can query it with normal SQL later",
+      "user": "davidgillen@precocityllc.com",
+      "dateUpdated": "Jan 15, 2018 3:18:57 PM",
+      "config": {
+        "colWidth": 12.0,
+        "graph": {
+          "mode": "table",
+          "height": 300.0,
+          "optionOpen": false,
+          "keys": [],
+          "values": [],
+          "groups": [],
+          "scatter": {}
+        },
+        "enabled": true,
+        "editorMode": "ace/mode/markdown",
+        "editorHide": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "jobName": "paragraph_1515012617693_-1628484423",
+      "id": "20180103-205017_99358902_q_6SHC1BMTXT1515702316",
+      "result": {
+        "code": "SUCCESS",
+        "type": "HTML",
+        "msg": "\u003cdiv class\u003d\"markdown-body\"\u003e\n\u003ch1\u003eIngestion from Azure Blob into Quoble/Spark Dataframe\u003c/h1\u003e\n\u003cul\u003e\n  \u003cli\u003eIssue the createOrReplaceTempView command registers our \u003ccode\u003einputDf\u003c/code\u003e dataframe as the Spark.SQL table \u003ccode\u003eall_reviews\u003c/code\u003e so that we can query it with normal SQL later\u003c/li\u003e\n\u003c/ul\u003e\n\u003c/div\u003e"
+      },
+      "dateCreated": "Jan 3, 2018 8:50:17 PM",
+      "dateStarted": "Jan 12, 2018 9:46:21 PM",
+      "dateFinished": "Jan 12, 2018 9:46:21 PM",
+      "status": "FINISHED",
+      "progressUpdateIntervalMs": 500
+    },
+    {
+      "text": "var inputDf \u003d sqlContext.read.json(\"wasb://product-reviews@precocityquboleout.blob.core.windows.net/reviews_Electronics_5.json\") \ninputDf \u003d inputDf.withColumn(\"Category\",lit(\"Electronics\"))\ninputDf.createOrReplaceTempView(\"all_reviews\")",
+      "user": "davidgillen@precocityllc.com",
+      "dateUpdated": "Jan 15, 2018 3:19:30 PM",
+      "config": {
+        "colWidth": 12.0,
+        "graph": {
+          "mode": "table",
+          "height": 300.0,
+          "optionOpen": false,
+          "keys": [],
+          "values": [],
+          "groups": [],
+          "scatter": {}
+        },
+        "enabled": true,
+        "editorMode": "ace/mode/scala",
+        "tableHide": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "paragraphProgress": {
+        "jobs": [
+          {
+            "id": 0,
+            "jobUrl": "https://azure.qubole.com/cluster-proxy?encodedUrl\u003dhttp%3A%2F%2F10.0.0.5%3A8088%2Fproxy%2Fapplication_1515764277505_0008/jobs/job?spark\u003dtrue\u0026id\u003d0",
+            "numTasks": 3,
+            "numCompletedTasks": 3,
+            "stages": [
+              {
+                "id": 0,
+                "completed": true,
+                "stageUrl": "https://azure.qubole.com/cluster-proxy?encodedUrl\u003dhttp%3A%2F%2F10.0.0.5%3A8088%2Fproxy%2Fapplication_1515764277505_0008/stages/stage/?id\u003d0\u0026attempt\u003d0",
+                "numCompleteTasks": 3,
+                "numActiveTasks": 0,
+                "numFailedTasks": 0,
+                "numTotalTasks": 3
+              }
+            ],
+            "status": "Success"
+          }
+        ],
+        "numCompletedTasks": 3,
+        "numTasks": 3,
+        "truncated": false
+      },
+      "jobName": "paragraph_1515592490982_-348148161",
+      "id": "20180110-135450_333212547_q_6SHC1BMTXT1515702316",
+      "result": {
+        "code": "SUCCESS",
+        "type": "TEXT",
+        "msg": "\ninputDf: org.apache.spark.sql.DataFrame \u003d [asin: string, helpful: array\u003cbigint\u003e ... 7 more fields]\n\ninputDf: org.apache.spark.sql.DataFrame \u003d [asin: string, helpful: array\u003cbigint\u003e ... 8 more fields]\n"
+      },
+      "dateCreated": "Jan 10, 2018 1:54:50 PM",
+      "dateStarted": "Jan 12, 2018 9:47:18 PM",
+      "dateFinished": "Jan 12, 2018 9:47:53 PM",
+      "status": "FINISHED",
+      "progressUpdateIntervalMs": 500
+    },
+    {
+      "text": "%md\n# Let\u0027s look at the schema of the data",
+      "user": "davidgillen@precocityllc.com",
+      "dateUpdated": "Jan 12, 2018 7:29:41 PM",
+      "config": {
+        "colWidth": 12.0,
+        "graph": {
+          "mode": "table",
+          "height": 300.0,
+          "optionOpen": false,
+          "keys": [],
+          "values": [],
+          "groups": [],
+          "scatter": {}
+        },
+        "enabled": true,
+        "editorMode": "ace/mode/markdown",
+        "editorHide": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "jobName": "paragraph_1515592760157_-921440991",
+      "id": "20180110-135920_249521663_q_6SHC1BMTXT1515702316",
+      "result": {
+        "code": "SUCCESS",
+        "type": "HTML",
+        "msg": "\u003cdiv class\u003d\"markdown-body\"\u003e\n\u003ch1\u003eLet\u0026rsquo;s look at the schema of the data\u003c/h1\u003e\n\u003c/div\u003e"
+      },
+      "dateCreated": "Jan 10, 2018 1:59:20 PM",
+      "dateStarted": "Jan 12, 2018 7:29:12 PM",
+      "dateFinished": "Jan 12, 2018 7:29:13 PM",
+      "status": "FINISHED",
+      "progressUpdateIntervalMs": 500
+    },
+    {
+      "text": "inputDf.printSchema",
+      "user": "davidgillen@precocityllc.com",
+      "dateUpdated": "Jan 15, 2018 3:21:21 PM",
+      "config": {
+        "colWidth": 12.0,
+        "graph": {
+          "mode": "table",
+          "height": 300.0,
+          "optionOpen": false,
+          "keys": [],
+          "values": [],
+          "groups": [],
+          "scatter": {}
+        },
+        "enabled": true,
+        "editorMode": "ace/mode/scala",
+        "tableHide": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "paragraphProgress": {
+        "jobs": [],
+        "numCompletedTasks": 0,
+        "numTasks": 0,
+        "truncated": false
+      },
+      "jobName": "paragraph_1515592817112_1923685180",
+      "id": "20180110-140017_1364279757_q_6SHC1BMTXT1515702316",
+      "result": {
+        "code": "SUCCESS",
+        "type": "TEXT",
+        "msg": "root\n |-- asin: string (nullable \u003d true)\n |-- helpful: array (nullable \u003d true)\n |    |-- element: long (containsNull \u003d true)\n |-- overall: double (nullable \u003d true)\n |-- reviewText: string (nullable \u003d true)\n |-- reviewTime: string (nullable \u003d true)\n |-- reviewerID: string (nullable \u003d true)\n |-- reviewerName: string (nullable \u003d true)\n |-- summary: string (nullable \u003d true)\n |-- unixReviewTime: long (nullable \u003d true)\n |-- Category: string (nullable \u003d false)\n\n"
+      },
+      "dateCreated": "Jan 10, 2018 2:00:17 PM",
+      "dateStarted": "Jan 12, 2018 9:48:27 PM",
+      "dateFinished": "Jan 12, 2018 9:48:27 PM",
+      "status": "FINISHED",
+      "progressUpdateIntervalMs": 500
+    },
+    {
+      "text": "%md\n# Key column definitions:\n\n* **asin**: Product ID\n* **helpful**: Array of 2 values. 1st value is # of times this review was voted helpful (upVotes), 2nd value is the total # of votes on this review\n* **overall**: The 1 to 5 star rating of the product\n* **reviewText**: The raw text of the actual review itself",
+      "user": "davidgillen@precocityllc.com",
+      "dateUpdated": "Jan 12, 2018 7:30:11 PM",
+      "config": {
+        "colWidth": 12.0,
+        "graph": {
+          "mode": "table",
+          "height": 300.0,
+          "optionOpen": false,
+          "keys": [],
+          "values": [],
+          "groups": [],
+          "scatter": {}
+        },
+        "enabled": true,
+        "editorMode": "ace/mode/markdown",
+        "editorHide": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "jobName": "paragraph_1515592844615_-610225104",
+      "id": "20180110-140044_1561032633_q_6SHC1BMTXT1515702316",
+      "result": {
+        "code": "SUCCESS",
+        "type": "HTML",
+        "msg": "\u003cdiv class\u003d\"markdown-body\"\u003e\n\u003ch1\u003eKey column definitions:\u003c/h1\u003e\n\u003cul\u003e\n  \u003cli\u003e\u003cstrong\u003easin\u003c/strong\u003e: Product ID\u003c/li\u003e\n  \u003cli\u003e\u003cstrong\u003ehelpful\u003c/strong\u003e: Array of 2 values. 1st value is # of times this review was voted helpful (upVotes), 2nd value is the total # of votes on this review\u003c/li\u003e\n  \u003cli\u003e\u003cstrong\u003eoverall\u003c/strong\u003e: The 1 to 5 star rating of the product\u003c/li\u003e\n  \u003cli\u003e\u003cstrong\u003ereviewText\u003c/strong\u003e: The raw text of the actual review itself\u003c/li\u003e\n\u003c/ul\u003e\n\u003c/div\u003e"
+      },
+      "dateCreated": "Jan 10, 2018 2:00:44 PM",
+      "dateStarted": "Jan 12, 2018 7:30:08 PM",
+      "dateFinished": "Jan 12, 2018 7:30:08 PM",
+      "status": "FINISHED",
+      "progressUpdateIntervalMs": 500
+    },
+    {
+      "text": "%md\n# Let\u0027s look at few rows of raw data",
+      "user": "davidgillen@precocityllc.com",
+      "dateUpdated": "Jan 12, 2018 7:31:25 PM",
+      "config": {
+        "colWidth": 12.0,
+        "graph": {
+          "mode": "table",
+          "height": 300.0,
+          "optionOpen": false,
+          "keys": [],
+          "values": [],
+          "groups": [],
+          "scatter": {}
+        },
+        "enabled": true,
+        "editorMode": "ace/mode/markdown",
+        "editorHide": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "jobName": "paragraph_1515592715793_1023602616",
+      "id": "20180110-135835_584406976_q_6SHC1BMTXT1515702316",
+      "result": {
+        "code": "SUCCESS",
+        "type": "HTML",
+        "msg": "\u003cdiv class\u003d\"markdown-body\"\u003e\n\u003ch1\u003eLet\u0026rsquo;s look at few rows of raw data\u003c/h1\u003e\n\u003c/div\u003e"
+      },
+      "dateCreated": "Jan 10, 2018 1:58:35 PM",
+      "dateStarted": "Jan 12, 2018 7:30:17 PM",
+      "dateFinished": "Jan 12, 2018 7:30:17 PM",
+      "status": "FINISHED",
+      "progressUpdateIntervalMs": 500
+    },
+    {
+      "text": "%spark.sql\nselect * from all_reviews limit 10",
+      "user": "davidgillen@precocityllc.com",
+      "dateUpdated": "Jan 15, 2018 3:21:30 PM",
+      "config": {
+        "colWidth": 12.0,
+        "graph": {
+          "mode": "table",
+          "height": 300.0,
+          "optionOpen": false,
+          "keys": [],
+          "values": [],
+          "groups": [],
+          "scatter": {}
+        },
+        "enabled": true,
+        "editorMode": "ace/mode/sql",
+        "tableHide": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "paragraphProgress": {
+        "jobs": [
+          {
+            "id": 1,
+            "jobUrl": "https://azure.qubole.com/cluster-proxy?encodedUrl\u003dhttp%3A%2F%2F10.0.0.5%3A8088%2Fproxy%2Fapplication_1515764277505_0008/jobs/job?spark\u003dtrue\u0026id\u003d1",
+            "numTasks": 1,
+            "numCompletedTasks": 1,
+            "stages": [
+              {
+                "id": 1,
+                "completed": true,
+                "stageUrl": "https://azure.qubole.com/cluster-proxy?encodedUrl\u003dhttp%3A%2F%2F10.0.0.5%3A8088%2Fproxy%2Fapplication_1515764277505_0008/stages/stage/?id\u003d1\u0026attempt\u003d0",
+                "numCompleteTasks": 1,
+                "numActiveTasks": 0,
+                "numFailedTasks": 0,
+                "numTotalTasks": 1
+              }
+            ],
+            "status": "Success"
+          }
+        ],
+        "numCompletedTasks": 1,
+        "numTasks": 1,
+        "truncated": false
+      },
+      "jobName": "paragraph_1515592671269_495849719",
+      "id": "20180110-135751_1855020246_q_6SHC1BMTXT1515702316",
+      "result": {
+        "code": "SUCCESS",
+        "type": "TABLE",
+        "msg": "asin\thelpful\toverall\treviewText\treviewTime\treviewerID\treviewerName\tsummary\tunixReviewTime\tCategory\n0528881469\tWrappedArray(0, 0)\t5.0\tWe got this GPS for my husband who is an (OTR) over the road trucker.  Very Impressed with the shipping time, it arrived a few days earlier than expected...  within a week of use however it started freezing up... could of just been a glitch in that unit.  Worked great when it worked!  Will work great for the normal person as well but does have the \"trucker\" option. (the big truck routes - tells you when a scale is coming up ect...)  Love the bigger screen, the ease of use, the ease of putting addresses into memory.  Nothing really bad to say about the unit with the exception of it freezing which is probably one in a million and that\u0027s just my luck.  I contacted the seller and within minutes of my email I received a email back with instructions for an exchange! VERY impressed all the way around!\t06 2, 2013\tAO94DHGC771SJ\tamazdnu\tGotta have GPS!\t1370131200\tElectronics\n0528881469\tWrappedArray(12, 15)\t1.0\tI\u0027m a professional OTR truck driver, and I bought a TND 700 at a truck stop hoping to make my life easier.  Rand McNally, are you listening?First thing I did after charging it was connect it to my laptop and install the software and then attempt to update it.  The software detected a problem with my update and wanted my home address so I could be sent a patch on an SD card.  Hello?  I don\u0027t think I\u0027m all that unusual; my home address is a PO box that a friend checks weekly and that I might get to check every six months or so.  I live in my truck and at truck stops.  If you need to make a patch available on an SD card then you should send the SD cards to the truck stops where the devices are sold.  I ran the update program multiple times until the program said that the TND 700 was completely updated.I programmed in the height (13\u00276\"), the length (53\u0027) and the weight (80,000#) of my rig and told it that I preferred highways.  I was parked at a truck stop in the Cincinnati OH area.  My next pickup was about 15 miles down the same freeway but on the other side of it a couple of blocks.  My cell phone GPS (Sprint) said to get on the freeway to get to my pickup.  The TND 700 routed me thru 23 miles of residential streets before finally getting me to my pickup.  Very exciting, especially since every time I refused to turn down a street posted \"No Trucks\" the TND 700 took almost 5 minutes to figure a re-route, and it happened multiple times on that short trip.I decided to give it another chance.  After my pickup on the north side of Cincinnati just off of I-75 I needed to head to Phoenix AZ via I-71.  Easy route is to just hop on I-75 and drive west and south to the intersection of I-71.  Indeed, that is what my cell phone advised.  The TND 700, however, wanted to route me over surface streets across the city and pick up I-75 on the other side of the city.  I turned it off and the next time I passed a truck stop of the same chain I purchased it at I returned it and got my money back.I then spent $30 on a cheap printer.  Now I take a minute to set up my route on Google and print it out.  Hasn\u0027t gotten me lost yet over several cross country trips.\t11 25, 2010\tAMO214LNFCEI4\tAmazon Customer\tVery Disappointed\t1290643200\tElectronics\n0528881469\tWrappedArray(43, 45)\t3.0\tWell, what can I say.  I\u0027ve had this unit in my truck for about four days now.  Prior to that I had a Garmin 755T non-truck GPS.  One of my favorite features in that unit was the ability to plan a route by determining mileage using the stop or via feature.  What I would do is using a map I would route myself several different ways forcing the unit by putting in stops or vias at different locations along the route, otherwise, like most GPS \u0027s, it determines what it thinks is the best route.  I could add up to 10 Via\u0027s or stop points for each route and then based on mileage and other factors determine which is the best route to take.  Multiple stops and the ability to route was the most important reason for having the Garmin.  However it was not truck specific.  And considering I am now hauling strictly hazmat I wanted something that would take that into consideration.  After perusing various forums, review sites, and word-of-mouth my choices boiled down to the Garmin 465T or the RAND McNally Intelliroute TND 700.  Even though it was quite a bit more than the Garmin I chose the TND 700 for several reasons.  The main one being the extra screen size, and its ability to coordinate with the RAND McNally truck atlas and also its ease of updating.Now on to my first impression of the TND 700.  It seems to be an aesthetically pleasing and durably built unit.  The first thing I noticed was it\u0027s very slow to boot compared to my old Garmin.  Whether this is unique to the TND 700 or is common amongst all truck specific gps units I cannot tell, but it\u0027s really not that big of a deal.  The second thing I noticed was the overwhelming wealth of information put forth.  That might explain why the manual (available via the TND dock) is well over 100 pages long.....  There is somewhat of a learning curve with this unit.  The next thing I noticed was the complexity of entering routes.  As previously mentioned I like to force it into my preferred routing by the use of stops or vias.  That was a big no go with this unit.  While you can enter multiple stops or vias it is nowhere near as user-friendly as my old Garmin.  Furthermore there is no way you can determine total mileage on the route that you have chosen, as I could with the Garmin.  Totally flummoxed by what appeared to be an omission of one of the best routing tools a trucker could have I went online and verified through an expert source connected with RAND McNally that no, that feature was a couple updates down the line and was not available at this point.  Unbelievable.  Also forcing the unit to follow a specific route can be very challenging.  For a unit of this price, and feature laden, I find this totally unacceptable.  I am still mulling over selling this unit  and buying the Garmin 465T.  I really do like this GPS, the screen is magnificent, and the volume is awesome.Another thing I\u0027ve noticed, which I do not think is unique to this unit, is some of the weird routing that it does.  I\u0027ve never owned a truck specific GPS before but after playing with this one for a couple of days I get the impression that what RAND MacNally (and the others that use Navteq) has done is take a plain old car specific Navteq map and a road atlas with truck restrictions and made notifications on the map.  In most databases there is not a 100% thorough listing of every road in the country.  What I mean is that this unit will route you down roads you don\u0027t belong on.  Today while coming home it tried routing me on several  9 ton County roads.  What that means is that a truck is limited to 73280 unless the road is posted at 10 tons.  County roads do not have that restriction listed in the RAND McNally road atlas, so I believe that is why it is not listed.....  Also unacceptable in a unit of this price and sold as truck specific.  However I\u0027d be willing to bet the other truck specific units are the same way as no one has ever done a truck specific version of NavTeq.Another bone I have to pick is the POI\u0027s. Not only the truck specific ones but the others all seem to be somewhat outdated.  I think the Garmin, at least the ones that I have used, are more current.  It would also be nice if I could add my own POI\u0027sTo sum it up I will keep this unit a little longer to see if I can make it workable.  If not I will go back to Garmin.  I like the concept and I like the unit but at this point I\u0027ll have to say I am somewhat unimpressed.pros:Large screenterrific imagesoutstanding volumecons:inability to determine route mileage by multiple stops and viasa somewhat outdated POI information.Non-truck specific routings.Cost.\t09 9, 2010\tA3N7T0DY83Y4IG\tC. A. Freeman\t1st impression\t1283990400\tElectronics\n0528881469\tWrappedArray(9, 10)\t2.0\tNot going to write a long review, even thought this unit deserves one. I\u0027ve driven well over 1-mil miles and done most of my own routing so I pretty know whats the fastest and shortest. Have been using a basic garmin for the past three years and with ANY Gps unit they\u0027ll ALL get you in trouble if you let them. I was really excited about this unit, due to the size and the features. Allot of great grafics and on screen info thats usefull. But the most basic item that it was lacking was the gps tracking. I gave this unit allot of leadway on its mistakes due to the fact that it had allot of cool stuff that it did, but its ability to track you and route you was not even close to what the basic garmin could due. Its like the prossesor that they installed in the TND 700 was 10 years old. Example if I needed to make a simple route change I.E. in town down to the next street due to the fact that I couldn\u0027t make the turn or the street was blocked off, it would take the TND 700 upwards of 45 seconds to a minute and a half to reroute me. Here I\u0027m sitting at a stop light waiting for directions and waiting that long with cars on my backside didn\u0027t make me happy. This is a problem that happened evertime you had to reroute, weather it was a simple street change or a major highway change. Also from the time you turned the unit on it would take twice as long to boot itself up. At least a dozen times with in a week it put me on the wrong roads and when I made a wrong turn it got it self lost....I.E. take left on xyz street, and it was some ones drive way. Or turn left in 800 yards and the turn was less than 10 feet away. You might think in a conjested city situation I might get a little mixed up, but this is out in the country. Twice it put me under 12\u00276\" bridges when I\u0027m 13\u00276\". Of course I made sure all my truck setting where they were supposed to be. I also updated the OS version,via Rand McNally. All in all I expected alot out of this unit and got a unit that should of been field tested with some people that drive allot. It just had to many route mistakes. Going back to the basic garmin. This isn\u0027t just my complaints, I have three friends that bought the same unit and have the same complaints. All of us returned the units.\t11 24, 2010\tA1H8PY3QHMQQA0\tDave M. Shaw \"mack dave\"\tGreat grafics, POOR GPS\t1290556800\tElectronics\n0528881469\tWrappedArray(0, 0)\t1.0\tI\u0027ve had mine for a year and here\u0027s what we got. It tries to route be down non truck routes while telling me the truck route is illegal for me. This is such a bad problem that even Interstate 25 in Denver Colorado is listed (according to this GPS) as a non- truck route and will route you through the city instead. There are several drivers within our company who own one and more than half (of about 50) have crashed to an un-recoverable state. Our company representative said that Rand McNally informed them that the GPS was not designed to say on for a long period of time. Really? it\u0027s a truck driver GPS. We have one driver with a $2400 dollar ticket due to this GPS routing him down the wrong road. The companies response was to update the unit. I\u0027ve had mine for a year, I never noticed one update that corrected functionality, they only seem to keep messing the tools. I want a GPS that routes, if I wanted tools I\u0027d buy software for my computer.My suggestion is to by a nice Garmen. My one rated for cars actually routes me better than this one rated for trucks.Wayne\t09 29, 2011\tA24EV6RXELQZ63\tWayne Smith\tMajor issues, only excuses for support\t1317254400\tElectronics\n0594451647\tWrappedArray(3, 3)\t5.0\tI am using this with a Nook HD+. It works as described. The HD picture on my Samsung 52\u0026#34; TV is excellent.\t01 3, 2014\tA2JXAZZI9PHK9Z\tBilly G. Noland \"Bill Noland\"\tHDMI Nook adapter cable\t1388707200\tElectronics\n0594451647\tWrappedArray(0, 0)\t2.0\tThe cable is very wobbly and sometimes disconnects itself.The price is completely unfair and only works with the Nook HD and HD+\t04 27, 2014\tA2P5U7BDKKT7FW\tChristian\tCheap proprietary scam\t1398556800\tElectronics\n0594451647\tWrappedArray(0, 0)\t5.0\tThis adaptor is real easy to setup and use right out of the box. I had not problem with it at all, it is well worth the purchase. I recommend this adaptor very much for viewing your Nook videos on your HDTV. I just disagree with other reviews on the length of the adaptor, I found it to be fairly adequate as to how and where it is connected to my TV. For me it was just right not too long or too short, I was able to place my Nook right below the connection on the TV stand, it did not fall or anything else, it is fine. Use your own judgement, I\u0027m too busy watching my movies :)\t05 4, 2014\tAAZ084UMH8VZ2\tD. L. Brown \"A Knower Of Good Things\"\tA Perfdect Nook HD+ hook up\t1399161600\tElectronics\n0594451647\tWrappedArray(0, 0)\t4.0\tThis adapter easily connects my Nook HD 7\u0026#34; to my HDTV through the HDMI cable.  This is good for traveling because it makes any hotel TV a potential smart TV so long as there is an accessible HDMI port.  It is also good for sharing photos from FB on a bigger screen. A bit pricey, but a good accessory to have.  Be sure to note that this is ONLY for the Nook HD and HD+ series.  It will not work with a standard Nook.\t07 11, 2014\tAEZ3CR6BKIROJ\tMark Dietter\tA nice easy to use accessory.\t1405036800\tElectronics\n0594451647\tWrappedArray(3, 3)\t5.0\tThis product really works great but I found the following items you need to keep in mind:- You must have your power adapter connected for it to work...it plugs in the the bottom. It appears it needs power from the nook power adapter to operate.- The plug fits in loosely and you cannot move the Nook around much without holding the adapter in place.- On initial plugin it seems you need to rock it around to get the connection but then it seems solid.- It works with a 25ft high quality HDMI cable so you can put the NOOK across the room with you. Not tested with cheap cables.Warning...I found that my LG SmartTV 3D from a few years back does not work with this adapter but it does not seem to work with many things...bad software. This adapter works fine with other HDMI devices I have used like monitors and I am sure other TVs.Gave it five stars because it really is nice to extend the screen and use your Nook as a streaming server to your TV. Nice they made such a device.\t01 20, 2014\tA3BY5KCNQZXV5U\tMatenai\tThis works great but read the details...\t1390176000\tElectronics\n"
+      },
+      "dateCreated": "Jan 10, 2018 1:57:51 PM",
+      "dateStarted": "Jan 12, 2018 9:49:06 PM",
+      "dateFinished": "Jan 12, 2018 9:49:07 PM",
+      "status": "FINISHED",
+      "progressUpdateIntervalMs": 500
+    },
+    {
+      "text": "%md\n# Derived Features\nLet\u0027s compute some additional columns that will be helpful for machine learning\n\n* **upVotes**: Extract out the 1st value in helpful column\n* **totalVotes**: 2nd value in helpful column\n* **fullReview**: Concatenate the summary \u0026 reviewText features into one column\n* **score**: Compute a measure of helpfulness as the ratio of upVotes to totalVotes",
+      "user": "davidgillen@precocityllc.com",
+      "dateUpdated": "Jan 12, 2018 7:30:28 PM",
+      "config": {
+        "colWidth": 12.0,
+        "graph": {
+          "mode": "table",
+          "height": 300.0,
+          "optionOpen": false,
+          "keys": [],
+          "values": [],
+          "groups": [],
+          "scatter": {}
+        },
+        "enabled": true,
+        "editorMode": "ace/mode/markdown",
+        "editorHide": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "jobName": "paragraph_1515593657604_-2017884532",
+      "id": "20180110-141417_656842185_q_6SHC1BMTXT1515702316",
+      "result": {
+        "code": "SUCCESS",
+        "type": "HTML",
+        "msg": "\u003cdiv class\u003d\"markdown-body\"\u003e\n\u003ch1\u003eDerived Features\u003c/h1\u003e\n\u003cp\u003eLet\u0026rsquo;s compute some additional columns that will be helpful for machine learning\u003c/p\u003e\n\u003cul\u003e\n  \u003cli\u003e\u003cstrong\u003eupVotes\u003c/strong\u003e: Extract out the 1st value in helpful column\u003c/li\u003e\n  \u003cli\u003e\u003cstrong\u003etotalVotes\u003c/strong\u003e: 2nd value in helpful column\u003c/li\u003e\n  \u003cli\u003e\u003cstrong\u003efullReview\u003c/strong\u003e: Concatenate the summary \u0026amp; reviewText features into one column\u003c/li\u003e\n  \u003cli\u003e\u003cstrong\u003escore\u003c/strong\u003e: Compute a measure of helpfulness as the ratio of upVotes to totalVotes\u003c/li\u003e\n\u003c/ul\u003e\n\u003c/div\u003e"
+      },
+      "dateCreated": "Jan 10, 2018 2:14:17 PM",
+      "dateStarted": "Jan 12, 2018 7:30:24 PM",
+      "dateFinished": "Jan 12, 2018 7:30:24 PM",
+      "status": "FINISHED",
+      "progressUpdateIntervalMs": 500
+    },
+    {
+      "text": "inputDf \u003d inputDf.withColumn(\"upVotes\", $\"helpful\".getItem(0))\ninputDf \u003d inputDf.withColumn(\"totalVotes\", $\"helpful\".getItem(1))\ninputDf \u003d inputDf.withColumn(\"fullReview\", concat(inputDf(\"summary\"), lit(\" \"), inputDf(\"reviewText\")))\ninputDf \u003d inputDf.withColumn(\"score\",inputDf(\"upVotes\")/inputDf(\"totalVotes\"))\ninputDf.createOrReplaceTempView(\"all_reviews\")\ninputDf \u003d sqlContext.sql(\"select *,from_unixtime(unixReviewTime,\u0027YYYY-MM-dd\u0027) as reviewDate, case when score \u003c\u003d 0.8 then 0 else 1 end as label from all_reviews\")\ninputDf.createOrReplaceTempView(\"all_reviews\")",
+      "user": "davidgillen@precocityllc.com",
+      "dateUpdated": "Jan 15, 2018 3:21:48 PM",
+      "config": {
+        "colWidth": 12.0,
+        "graph": {
+          "mode": "table",
+          "height": 300.0,
+          "optionOpen": false,
+          "keys": [],
+          "values": [],
+          "groups": [],
+          "scatter": {}
+        },
+        "enabled": true,
+        "editorMode": "ace/mode/scala",
+        "tableHide": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "paragraphProgress": {
+        "jobs": [],
+        "numCompletedTasks": 0,
+        "numTasks": 0,
+        "truncated": false
+      },
+      "jobName": "paragraph_1515599944425_254605507",
+      "id": "20180110-155904_1749793674_q_6SHC1BMTXT1515702316",
+      "result": {
+        "code": "SUCCESS",
+        "type": "TEXT",
+        "msg": "\ninputDf: org.apache.spark.sql.DataFrame \u003d [asin: string, helpful: array\u003cbigint\u003e ... 9 more fields]\n\ninputDf: org.apache.spark.sql.DataFrame \u003d [asin: string, helpful: array\u003cbigint\u003e ... 10 more fields]\n\ninputDf: org.apache.spark.sql.DataFrame \u003d [asin: string, helpful: array\u003cbigint\u003e ... 11 more fields]\n\ninputDf: org.apache.spark.sql.DataFrame \u003d [asin: string, helpful: array\u003cbigint\u003e ... 12 more fields]\n\ninputDf: org.apache.spark.sql.DataFrame \u003d [asin: string, helpful: array\u003cbigint\u003e ... 14 more fields]\n"
+      },
+      "dateCreated": "Jan 10, 2018 3:59:04 PM",
+      "dateStarted": "Jan 12, 2018 9:50:38 PM",
+      "dateFinished": "Jan 12, 2018 9:50:40 PM",
+      "status": "FINISHED",
+      "progressUpdateIntervalMs": 500
+    },
+    {
+      "text": "%md\n# Filter\nReviews with less then 10 totalVotes are likely to have insufficent feedback to be considered meaningful.  Let\u0027s filter those out\n",
+      "user": "davidgillen@precocityllc.com",
+      "dateUpdated": "Jan 12, 2018 7:30:40 PM",
+      "config": {
+        "colWidth": 12.0,
+        "graph": {
+          "mode": "table",
+          "height": 300.0,
+          "optionOpen": false,
+          "keys": [],
+          "values": [],
+          "groups": [],
+          "scatter": {}
+        },
+        "enabled": true,
+        "editorMode": "ace/mode/markdown",
+        "editorHide": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "jobName": "paragraph_1515593898988_-1445441110",
+      "id": "20180110-141818_1223639840_q_6SHC1BMTXT1515702316",
+      "result": {
+        "code": "SUCCESS",
+        "type": "HTML",
+        "msg": "\u003cdiv class\u003d\"markdown-body\"\u003e\n\u003ch1\u003eFilter\u003c/h1\u003e\n\u003cp\u003eReviews with less then 10 totalVotes are likely to have insufficent feedback to be considered meaningful. Let\u0026rsquo;s filter those out\u003c/p\u003e\n\u003c/div\u003e"
+      },
+      "dateCreated": "Jan 10, 2018 2:18:18 PM",
+      "dateStarted": "Jan 12, 2018 7:30:36 PM",
+      "dateFinished": "Jan 12, 2018 7:30:36 PM",
+      "status": "FINISHED",
+      "progressUpdateIntervalMs": 500
+    },
+    {
+      "text": "var df \u003d inputDf.filter(\"totalVotes \u003e 10\")\ndf.createOrReplaceTempView(\"reviews\")",
+      "user": "davidgillen@precocityllc.com",
+      "dateUpdated": "Jan 15, 2018 3:21:56 PM",
+      "config": {
+        "colWidth": 12.0,
+        "graph": {
+          "mode": "table",
+          "height": 300.0,
+          "optionOpen": false,
+          "keys": [],
+          "values": [],
+          "groups": [],
+          "scatter": {}
+        },
+        "enabled": true,
+        "editorMode": "ace/mode/scala",
+        "tableHide": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "paragraphProgress": {
+        "jobs": [],
+        "numCompletedTasks": 0,
+        "numTasks": 0,
+        "truncated": false
+      },
+      "jobName": "paragraph_1515594030062_1307801238",
+      "id": "20180110-142030_358578607_q_6SHC1BMTXT1515702316",
+      "result": {
+        "code": "SUCCESS",
+        "type": "TEXT",
+        "msg": "\ndf: org.apache.spark.sql.Dataset[org.apache.spark.sql.Row] \u003d [asin: string, helpful: array\u003cbigint\u003e ... 14 more fields]\n"
+      },
+      "dateCreated": "Jan 10, 2018 2:20:30 PM",
+      "dateStarted": "Jan 12, 2018 9:51:16 PM",
+      "dateFinished": "Jan 12, 2018 9:51:18 PM",
+      "status": "FINISHED",
+      "progressUpdateIntervalMs": 500
+    },
+    {
+      "text": "%md\n# Tokenize\nLet\u0027s tokenize our single long `fullReview` columnn into an array of lower case strings",
+      "user": "davidgillen@precocityllc.com",
+      "dateUpdated": "Jan 12, 2018 7:39:38 PM",
+      "config": {
+        "colWidth": 12.0,
+        "graph": {
+          "mode": "table",
+          "height": 300.0,
+          "optionOpen": false,
+          "keys": [],
+          "values": [],
+          "groups": [],
+          "scatter": {}
+        },
+        "enabled": true,
+        "editorMode": "ace/mode/markdown",
+        "editorHide": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "jobName": "paragraph_1515594249165_-1855129170",
+      "id": "20180110-142409_503381931_q_6SHC1BMTXT1515702316",
+      "result": {
+        "code": "SUCCESS",
+        "type": "HTML",
+        "msg": "\u003cdiv class\u003d\"markdown-body\"\u003e\n\u003ch1\u003eTokenize\u003c/h1\u003e\n\u003cp\u003eLet\u0026rsquo;s tokenize our single long \u003ccode\u003efullReview\u003c/code\u003e columnn into an array of lower case strings\u003c/p\u003e\n\u003c/div\u003e"
+      },
+      "dateCreated": "Jan 10, 2018 2:24:09 PM",
+      "dateStarted": "Jan 12, 2018 7:39:31 PM",
+      "dateFinished": "Jan 12, 2018 7:39:31 PM",
+      "status": "FINISHED",
+      "progressUpdateIntervalMs": 500
+    },
+    {
+      "text": "val regexTokenizer \u003d new RegexTokenizer()\n  .setInputCol(\"fullReview\")\n  .setOutputCol(\"regexOutput\")\n  .setPattern(\"\\\\W\")\nvar tokenizedDF \u003d regexTokenizer.transform(df)\ntokenizedDF.createOrReplaceTempView(\"reviews\")",
+      "user": "davidgillen@precocityllc.com",
+      "dateUpdated": "Jan 15, 2018 3:21:59 PM",
+      "config": {
+        "colWidth": 12.0,
+        "graph": {
+          "mode": "table",
+          "height": 300.0,
+          "optionOpen": false,
+          "keys": [],
+          "values": [],
+          "groups": [],
+          "scatter": {}
+        },
+        "enabled": true,
+        "editorMode": "ace/mode/scala",
+        "tableHide": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "paragraphProgress": {
+        "jobs": [],
+        "numCompletedTasks": 0,
+        "numTasks": 0,
+        "truncated": false
+      },
+      "jobName": "paragraph_1515594275729_1287746678",
+      "id": "20180110-142435_197011591_q_6SHC1BMTXT1515702316",
+      "result": {
+        "code": "SUCCESS",
+        "type": "TEXT",
+        "msg": "\nregexTokenizer: org.apache.spark.ml.feature.RegexTokenizer \u003d regexTok_10b070fcea56\n\ntokenizedDF: org.apache.spark.sql.DataFrame \u003d [asin: string, helpful: array\u003cbigint\u003e ... 15 more fields]\n"
+      },
+      "dateCreated": "Jan 10, 2018 2:24:35 PM",
+      "dateStarted": "Jan 12, 2018 9:51:51 PM",
+      "dateFinished": "Jan 12, 2018 9:51:52 PM",
+      "status": "FINISHED",
+      "progressUpdateIntervalMs": 500
+    },
+    {
+      "text": "%spark.sql\nselect asin,fullReview,regexOutput from reviews limit 10",
+      "user": "davidgillen@precocityllc.com",
+      "dateUpdated": "Jan 15, 2018 3:22:02 PM",
+      "config": {
+        "colWidth": 12.0,
+        "graph": {
+          "mode": "table",
+          "height": 300.0,
+          "optionOpen": false,
+          "keys": [],
+          "values": [],
+          "groups": [],
+          "scatter": {}
+        },
+        "enabled": true,
+        "editorMode": "ace/mode/sql",
+        "tableHide": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "paragraphProgress": {
+        "jobs": [
+          {
+            "id": 2,
+            "jobUrl": "https://azure.qubole.com/cluster-proxy?encodedUrl\u003dhttp%3A%2F%2F10.0.0.5%3A8088%2Fproxy%2Fapplication_1515764277505_0008/jobs/job?spark\u003dtrue\u0026id\u003d2",
+            "numTasks": 1,
+            "numCompletedTasks": 1,
+            "stages": [
+              {
+                "id": 2,
+                "completed": true,
+                "stageUrl": "https://azure.qubole.com/cluster-proxy?encodedUrl\u003dhttp%3A%2F%2F10.0.0.5%3A8088%2Fproxy%2Fapplication_1515764277505_0008/stages/stage/?id\u003d2\u0026attempt\u003d0",
+                "numCompleteTasks": 1,
+                "numActiveTasks": 0,
+                "numFailedTasks": 0,
+                "numTotalTasks": 1
+              }
+            ],
+            "status": "Success"
+          }
+        ],
+        "numCompletedTasks": 1,
+        "numTasks": 1,
+        "truncated": false
+      },
+      "jobName": "paragraph_1515673965993_88720355",
+      "id": "20180111-123245_1488720114_q_6SHC1BMTXT1515702316",
+      "result": {
+        "code": "SUCCESS",
+        "type": "TABLE",
+        "msg": "asin\tfullReview\tregexOutput\n0528881469\tVery Disappointed I\u0027m a professional OTR truck driver, and I bought a TND 700 at a truck stop hoping to make my life easier.  Rand McNally, are you listening?First thing I did after charging it was connect it to my laptop and install the software and then attempt to update it.  The software detected a problem with my update and wanted my home address so I could be sent a patch on an SD card.  Hello?  I don\u0027t think I\u0027m all that unusual; my home address is a PO box that a friend checks weekly and that I might get to check every six months or so.  I live in my truck and at truck stops.  If you need to make a patch available on an SD card then you should send the SD cards to the truck stops where the devices are sold.  I ran the update program multiple times until the program said that the TND 700 was completely updated.I programmed in the height (13\u00276\"), the length (53\u0027) and the weight (80,000#) of my rig and told it that I preferred highways.  I was parked at a truck stop in the Cincinnati OH area.  My next pickup was about 15 miles down the same freeway but on the other side of it a couple of blocks.  My cell phone GPS (Sprint) said to get on the freeway to get to my pickup.  The TND 700 routed me thru 23 miles of residential streets before finally getting me to my pickup.  Very exciting, especially since every time I refused to turn down a street posted \"No Trucks\" the TND 700 took almost 5 minutes to figure a re-route, and it happened multiple times on that short trip.I decided to give it another chance.  After my pickup on the north side of Cincinnati just off of I-75 I needed to head to Phoenix AZ via I-71.  Easy route is to just hop on I-75 and drive west and south to the intersection of I-71.  Indeed, that is what my cell phone advised.  The TND 700, however, wanted to route me over surface streets across the city and pick up I-75 on the other side of the city.  I turned it off and the next time I passed a truck stop of the same chain I purchased it at I returned it and got my money back.I then spent $30 on a cheap printer.  Now I take a minute to set up my route on Google and print it out.  Hasn\u0027t gotten me lost yet over several cross country trips.\tWrappedArray(very, disappointed, i, m, a, professional, otr, truck, driver, and, i, bought, a, tnd, 700, at, a, truck, stop, hoping, to, make, my, life, easier, rand, mcnally, are, you, listening, first, thing, i, did, after, charging, it, was, connect, it, to, my, laptop, and, install, the, software, and, then, attempt, to, update, it, the, software, detected, a, problem, with, my, update, and, wanted, my, home, address, so, i, could, be, sent, a, patch, on, an, sd, card, hello, i, don, t, think, i, m, all, that, unusual, my, home, address, is, a, po, box, that, a, friend, checks, weekly, and, that, i, might, get, to, check, every, six, months, or, so, i, live, in, my, truck, and, at, truck, stops, if, you, need, to, make, a, patch, available, on, an, sd, card, then, you, should, send, the, sd, cards, to, the, truck, stops, where, the, devices, are, sold, i, ran, the, update, program, multiple, times, until, the, program, said, that, the, tnd, 700, was, completely, updated, i, programmed, in, the, height, 13, 6, the, length, 53, and, the, weight, 80, 000, of, my, rig, and, told, it, that, i, preferred, highways, i, was, parked, at, a, truck, stop, in, the, cincinnati, oh, area, my, next, pickup, was, about, 15, miles, down, the, same, freeway, but, on, the, other, side, of, it, a, couple, of, blocks, my, cell, phone, gps, sprint, said, to, get, on, the, freeway, to, get, to, my, pickup, the, tnd, 700, routed, me, thru, 23, miles, of, residential, streets, before, finally, getting, me, to, my, pickup, very, exciting, especially, since, every, time, i, refused, to, turn, down, a, street, posted, no, trucks, the, tnd, 700, took, almost, 5, minutes, to, figure, a, re, route, and, it, happened, multiple, times, on, that, short, trip, i, decided, to, give, it, another, chance, after, my, pickup, on, the, north, side, of, cincinnati, just, off, of, i, 75, i, needed, to, head, to, phoenix, az, via, i, 71, easy, route, is, to, just, hop, on, i, 75, and, drive, west, and, south, to, the, intersection, of, i, 71, indeed, that, is, what, my, cell, phone, advised, the, tnd, 700, however, wanted, to, route, me, over, surface, streets, across, the, city, and, pick, up, i, 75, on, the, other, side, of, the, city, i, turned, it, off, and, the, next, time, i, passed, a, truck, stop, of, the, same, chain, i, purchased, it, at, i, returned, it, and, got, my, money, back, i, then, spent, 30, on, a, cheap, printer, now, i, take, a, minute, to, set, up, my, route, on, google, and, print, it, out, hasn, t, gotten, me, lost, yet, over, several, cross, country, trips)\n0528881469\t1st impression Well, what can I say.  I\u0027ve had this unit in my truck for about four days now.  Prior to that I had a Garmin 755T non-truck GPS.  One of my favorite features in that unit was the ability to plan a route by determining mileage using the stop or via feature.  What I would do is using a map I would route myself several different ways forcing the unit by putting in stops or vias at different locations along the route, otherwise, like most GPS \u0027s, it determines what it thinks is the best route.  I could add up to 10 Via\u0027s or stop points for each route and then based on mileage and other factors determine which is the best route to take.  Multiple stops and the ability to route was the most important reason for having the Garmin.  However it was not truck specific.  And considering I am now hauling strictly hazmat I wanted something that would take that into consideration.  After perusing various forums, review sites, and word-of-mouth my choices boiled down to the Garmin 465T or the RAND McNally Intelliroute TND 700.  Even though it was quite a bit more than the Garmin I chose the TND 700 for several reasons.  The main one being the extra screen size, and its ability to coordinate with the RAND McNally truck atlas and also its ease of updating.Now on to my first impression of the TND 700.  It seems to be an aesthetically pleasing and durably built unit.  The first thing I noticed was it\u0027s very slow to boot compared to my old Garmin.  Whether this is unique to the TND 700 or is common amongst all truck specific gps units I cannot tell, but it\u0027s really not that big of a deal.  The second thing I noticed was the overwhelming wealth of information put forth.  That might explain why the manual (available via the TND dock) is well over 100 pages long.....  There is somewhat of a learning curve with this unit.  The next thing I noticed was the complexity of entering routes.  As previously mentioned I like to force it into my preferred routing by the use of stops or vias.  That was a big no go with this unit.  While you can enter multiple stops or vias it is nowhere near as user-friendly as my old Garmin.  Furthermore there is no way you can determine total mileage on the route that you have chosen, as I could with the Garmin.  Totally flummoxed by what appeared to be an omission of one of the best routing tools a trucker could have I went online and verified through an expert source connected with RAND McNally that no, that feature was a couple updates down the line and was not available at this point.  Unbelievable.  Also forcing the unit to follow a specific route can be very challenging.  For a unit of this price, and feature laden, I find this totally unacceptable.  I am still mulling over selling this unit  and buying the Garmin 465T.  I really do like this GPS, the screen is magnificent, and the volume is awesome.Another thing I\u0027ve noticed, which I do not think is unique to this unit, is some of the weird routing that it does.  I\u0027ve never owned a truck specific GPS before but after playing with this one for a couple of days I get the impression that what RAND MacNally (and the others that use Navteq) has done is take a plain old car specific Navteq map and a road atlas with truck restrictions and made notifications on the map.  In most databases there is not a 100% thorough listing of every road in the country.  What I mean is that this unit will route you down roads you don\u0027t belong on.  Today while coming home it tried routing me on several  9 ton County roads.  What that means is that a truck is limited to 73280 unless the road is posted at 10 tons.  County roads do not have that restriction listed in the RAND McNally road atlas, so I believe that is why it is not listed.....  Also unacceptable in a unit of this price and sold as truck specific.  However I\u0027d be willing to bet the other truck specific units are the same way as no one has ever done a truck specific version of NavTeq.Another bone I have to pick is the POI\u0027s. Not only the truck specific ones but the others all seem to be somewhat outdated.  I think the Garmin, at least the ones that I have used, are more current.  It would also be nice if I could add my own POI\u0027sTo sum it up I will keep this unit a little longer to see if I can make it workable.  If not I will go back to Garmin.  I like the concept and I like the unit but at this point I\u0027ll have to say I am somewhat unimpressed.pros:Large screenterrific imagesoutstanding volumecons:inability to determine route mileage by multiple stops and viasa somewhat outdated POI information.Non-truck specific routings.Cost.\tWrappedArray(1st, impression, well, what, can, i, say, i, ve, had, this, unit, in, my, truck, for, about, four, days, now, prior, to, that, i, had, a, garmin, 755t, non, truck, gps, one, of, my, favorite, features, in, that, unit, was, the, ability, to, plan, a, route, by, determining, mileage, using, the, stop, or, via, feature, what, i, would, do, is, using, a, map, i, would, route, myself, several, different, ways, forcing, the, unit, by, putting, in, stops, or, vias, at, different, locations, along, the, route, otherwise, like, most, gps, s, it, determines, what, it, thinks, is, the, best, route, i, could, add, up, to, 10, via, s, or, stop, points, for, each, route, and, then, based, on, mileage, and, other, factors, determine, which, is, the, best, route, to, take, multiple, stops, and, the, ability, to, route, was, the, most, important, reason, for, having, the, garmin, however, it, was, not, truck, specific, and, considering, i, am, now, hauling, strictly, hazmat, i, wanted, something, that, would, take, that, into, consideration, after, perusing, various, forums, review, sites, and, word, of, mouth, my, choices, boiled, down, to, the, garmin, 465t, or, the, rand, mcnally, intelliroute, tnd, 700, even, though, it, was, quite, a, bit, more, than, the, garmin, i, chose, the, tnd, 700, for, several, reasons, the, main, one, being, the, extra, screen, size, and, its, ability, to, coordinate, with, the, rand, mcnally, truck, atlas, and, also, its, ease, of, updating, now, on, to, my, first, impression, of, the, tnd, 700, it, seems, to, be, an, aesthetically, pleasing, and, durably, built, unit, the, first, thing, i, noticed, was, it, s, very, slow, to, boot, compared, to, my, old, garmin, whether, this, is, unique, to, the, tnd, 700, or, is, common, amongst, all, truck, specific, gps, units, i, cannot, tell, but, it, s, really, not, that, big, of, a, deal, the, second, thing, i, noticed, was, the, overwhelming, wealth, of, information, put, forth, that, might, explain, why, the, manual, available, via, the, tnd, dock, is, well, over, 100, pages, long, there, is, somewhat, of, a, learning, curve, with, this, unit, the, next, thing, i, noticed, was, the, complexity, of, entering, routes, as, previously, mentioned, i, like, to, force, it, into, my, preferred, routing, by, the, use, of, stops, or, vias, that, was, a, big, no, go, with, this, unit, while, you, can, enter, multiple, stops, or, vias, it, is, nowhere, near, as, user, friendly, as, my, old, garmin, furthermore, there, is, no, way, you, can, determine, total, mileage, on, the, route, that, you, have, chosen, as, i, could, with, the, garmin, totally, flummoxed, by, what, appeared, to, be, an, omission, of, one, of, the, best, routing, tools, a, trucker, could, have, i, went, online, and, verified, through, an, expert, source, connected, with, rand, mcnally, that, no, that, feature, was, a, couple, updates, down, the, line, and, was, not, available, at, this, point, unbelievable, also, forcing, the, unit, to, follow, a, specific, route, can, be, very, challenging, for, a, unit, of, this, price, and, feature, laden, i, find, this, totally, unacceptable, i, am, still, mulling, over, selling, this, unit, and, buying, the, garmin, 465t, i, really, do, like, this, gps, the, screen, is, magnificent, and, the, volume, is, awesome, another, thing, i, ve, noticed, which, i, do, not, think, is, unique, to, this, unit, is, some, of, the, weird, routing, that, it, does, i, ve, never, owned, a, truck, specific, gps, before, but, after, playing, with, this, one, for, a, couple, of, days, i, get, the, impression, that, what, rand, macnally, and, the, others, that, use, navteq, has, done, is, take, a, plain, old, car, specific, navteq, map, and, a, road, atlas, with, truck, restrictions, and, made, notifications, on, the, map, in, most, databases, there, is, not, a, 100, thorough, listing, of, every, road, in, the, country, what, i, mean, is, that, this, unit, will, route, you, down, roads, you, don, t, belong, on, today, while, coming, home, it, tried, routing, me, on, several, 9, ton, county, roads, what, that, means, is, that, a, truck, is, limited, to, 73280, unless, the, road, is, posted, at, 10, tons, county, roads, do, not, have, that, restriction, listed, in, the, rand, mcnally, road, atlas, so, i, believe, that, is, why, it, is, not, listed, also, unacceptable, in, a, unit, of, this, price, and, sold, as, truck, specific, however, i, d, be, willing, to, bet, the, other, truck, specific, units, are, the, same, way, as, no, one, has, ever, done, a, truck, specific, version, of, navteq, another, bone, i, have, to, pick, is, the, poi, s, not, only, the, truck, specific, ones, but, the, others, all, seem, to, be, somewhat, outdated, i, think, the, garmin, at, least, the, ones, that, i, have, used, are, more, current, it, would, also, be, nice, if, i, could, add, my, own, poi, sto, sum, it, up, i, will, keep, this, unit, a, little, longer, to, see, if, i, can, make, it, workable, if, not, i, will, go, back, to, garmin, i, like, the, concept, and, i, like, the, unit, but, at, this, point, i, ll, have, to, say, i, am, somewhat, unimpressed, pros, large, screenterrific, imagesoutstanding, volumecons, inability, to, determine, route, mileage, by, multiple, stops, and, viasa, somewhat, outdated, poi, information, non, truck, specific, routings, cost)\n0972683275\tReal value for the money Quality was excellent. Instructions were clear. It was not clear about a tilt feature, but there was enough to level it when I finished. Be careful to get the wall bracket real vertical. (I was using it for a 23 inch computer screen so I really need it to be level for reading.) Everything I needed plus lots of extra hardware for different situations.\tWrappedArray(real, value, for, the, money, quality, was, excellent, instructions, were, clear, it, was, not, clear, about, a, tilt, feature, but, there, was, enough, to, level, it, when, i, finished, be, careful, to, get, the, wall, bracket, real, vertical, i, was, using, it, for, a, 23, inch, computer, screen, so, i, really, need, it, to, be, level, for, reading, everything, i, needed, plus, lots, of, extra, hardware, for, different, situations)\n0972683275\tWhat a piece of junk! I checked around Amazon as well as some other sites, and decided these were what I needed.  I read the reviews, looked at the pictures and bought two of these.  I received them today.  I unpacked one of them, read the instructions and immediately filled out the return request for Amazon.  These mounts are very, very heavy and require 6, yes SIX, screws to mount to the wall.  Are you kidding me?  The TVs are only 22 lbs!  Two screws in the studs and then more damage to the wall than is necessary.  What a joke!  And Lag bolts?  Ever heard of screws?  The other issue is that these are very hard to move.  I bought an articulating wall mount for a reason, and I expect them to be able to move without a wrench in my hand.\tWrappedArray(what, a, piece, of, junk, i, checked, around, amazon, as, well, as, some, other, sites, and, decided, these, were, what, i, needed, i, read, the, reviews, looked, at, the, pictures, and, bought, two, of, these, i, received, them, today, i, unpacked, one, of, them, read, the, instructions, and, immediately, filled, out, the, return, request, for, amazon, these, mounts, are, very, very, heavy, and, require, 6, yes, six, screws, to, mount, to, the, wall, are, you, kidding, me, the, tvs, are, only, 22, lbs, two, screws, in, the, studs, and, then, more, damage, to, the, wall, than, is, necessary, what, a, joke, and, lag, bolts, ever, heard, of, screws, the, other, issue, is, that, these, are, very, hard, to, move, i, bought, an, articulating, wall, mount, for, a, reason, and, i, expect, them, to, be, able, to, move, without, a, wrench, in, my, hand)\n0972683275\tExcellent, at any price I mounted this in my RV and it holds a 26\" LCD TV / DVD combo.  Installation was very easy and the mount works GREAT!  I was prepared to pay 5 times the price for a mount that would work as I wanted.  I couldn\u0027t be happier.\tWrappedArray(excellent, at, any, price, i, mounted, this, in, my, rv, and, it, holds, a, 26, lcd, tv, dvd, combo, installation, was, very, easy, and, the, mount, works, great, i, was, prepared, to, pay, 5, times, the, price, for, a, mount, that, would, work, as, i, wanted, i, couldn, t, be, happier)\n0972683275\tIt Works But Could Be Better I purchased this mount for my 37 inch LCD TV.  Installation was easy...  The trouble I encountered was due to a bad wall stud finder.  Make sure you have one when you install this mount because you need to screw the mount into a wall stud or at least have one screw into a wall stud.The arm of the mount sags after I hooked up my 37in. LCD TV to the mount.  My TV is within the weight limit of this mount (less than 55lbs.) but the arm still sags due to the weight of the TV.  I guess as long as it supports my TV, the sagging shouldn\u0027t be an issue.  It just looks funny from the side.  I do retract the arm inward towards the wall to minimize the sagging and it also gives me the warm fuzzy feeling that the arm will be less likely to break off.Overall, for the price this mount is a great deal and works but I would suggest purchasing it for flat screen TVs less than 37 inches.  I would not hesitate to buy this mount again but for a 32 inch TV at most.\tWrappedArray(it, works, but, could, be, better, i, purchased, this, mount, for, my, 37, inch, lcd, tv, installation, was, easy, the, trouble, i, encountered, was, due, to, a, bad, wall, stud, finder, make, sure, you, have, one, when, you, install, this, mount, because, you, need, to, screw, the, mount, into, a, wall, stud, or, at, least, have, one, screw, into, a, wall, stud, the, arm, of, the, mount, sags, after, i, hooked, up, my, 37in, lcd, tv, to, the, mount, my, tv, is, within, the, weight, limit, of, this, mount, less, than, 55lbs, but, the, arm, still, sags, due, to, the, weight, of, the, tv, i, guess, as, long, as, it, supports, my, tv, the, sagging, shouldn, t, be, an, issue, it, just, looks, funny, from, the, side, i, do, retract, the, arm, inward, towards, the, wall, to, minimize, the, sagging, and, it, also, gives, me, the, warm, fuzzy, feeling, that, the, arm, will, be, less, likely, to, break, off, overall, for, the, price, this, mount, is, a, great, deal, and, works, but, i, would, suggest, purchasing, it, for, flat, screen, tvs, less, than, 37, inches, i, would, not, hesitate, to, buy, this, mount, again, but, for, a, 32, inch, tv, at, most)\n0972683275\tExcellent mount Do not listen to other reviewers, screws that this came with are concrete only, there are no wood or dry wall screws. You will!!!! need a stud finder!!! There are 8 holes in total on a mounting plate, so it is plenty enough if you hit the center of a stud. Sturdy,good looking. There is a whole set of machine screws for(my guess)all TV types plus couple of tools that you will need.\tWrappedArray(excellent, mount, do, not, listen, to, other, reviewers, screws, that, this, came, with, are, concrete, only, there, are, no, wood, or, dry, wall, screws, you, will, need, a, stud, finder, there, are, 8, holes, in, total, on, a, mounting, plate, so, it, is, plenty, enough, if, you, hit, the, center, of, a, stud, sturdy, good, looking, there, is, a, whole, set, of, machine, screws, for, my, guess, all, tv, types, plus, couple, of, tools, that, you, will, need)\n0972683275\tPoor Quality Control, May Block the Ports on Your TV Unfortunately, I\u0027m returning this mount.Though I like the look of it, particularly the two part plastic piece that clips to the wall mount portion to cover the bolts, I feel that the one I ordered wasn\u0027t well made.I purchased it to mount aLG 26LE5300 26-Inch 720p 60Hz LED LCD HDTVin our kitchen.The mount arrived quickly and was well packaged. Unfortunately, the arm was welded to the wall bracket at a slight angle, meaning that regardless of how it would mount it and the LCD would never be level.Also, the powder coating near one of the bolts had come off and I could see some rust already forming.I decided to see if the mount would be the right fit for the tv before returning, figuring I would just get a replacement and hope for the best. I\u0027m glad I did because this led me to find two other issues.The first one I blame on the manufacturers, the second I would consider a design flaw of the LG lcd.The first issue is that the screws supplied to attach the bracket to the tv are too few and two short. The screws are only 12mm long, and would barely catch in the threads of the TV if they weren\u0027t recessed at all. Most mounting threads on lcds and plasmas are partially recessed. I stopped by my local Lowes and picked up two packs of similar screws (M4-70 or something to that affect). $0.80 a packet so not much of an expenditure, just a big hassle. I needed 20mm long screws to mount this to the tv, so a pretty fair difference over what was supplied. The manufacturer supplies several different thread and gauge options, but only one shallow length of each set.The second issue is that this universal mount covered the power and HDMI ports on the back of the 26le5300. Again, I think this is more of an issue with the tv then the mount, as they\u0027re situated rather high and central. Either way, it\u0027s something you\u0027ll want to check on your tv before ordering this product.I actually returned this and in its stead purchased a similar mount from the same company. TheVideoSecu Swing LCD Wall Mount 20 inch Extension 55 lb loading capacity for LCD TV Monitor Flat Screen VESA 75mm/100 mm 1USgets very high marks from me. It\u0027s basically the same arm with a 75x75 to 100x100 VESA head on it. This second arm did not have any of the manufacturing errors of the previous model and fit the back of my tv perfectly.I understand that it\u0027s a very affordable mount, and that most of my issues may have been resolved with a replacement. However, I just can\u0027t give this mount any higher rating than I have.\tWrappedArray(poor, quality, control, may, block, the, ports, on, your, tv, unfortunately, i, m, returning, this, mount, though, i, like, the, look, of, it, particularly, the, two, part, plastic, piece, that, clips, to, the, wall, mount, portion, to, cover, the, bolts, i, feel, that, the, one, i, ordered, wasn, t, well, made, i, purchased, it, to, mount, alg, 26le5300, 26, inch, 720p, 60hz, led, lcd, hdtvin, our, kitchen, the, mount, arrived, quickly, and, was, well, packaged, unfortunately, the, arm, was, welded, to, the, wall, bracket, at, a, slight, angle, meaning, that, regardless, of, how, it, would, mount, it, and, the, lcd, would, never, be, level, also, the, powder, coating, near, one, of, the, bolts, had, come, off, and, i, could, see, some, rust, already, forming, i, decided, to, see, if, the, mount, would, be, the, right, fit, for, the, tv, before, returning, figuring, i, would, just, get, a, replacement, and, hope, for, the, best, i, m, glad, i, did, because, this, led, me, to, find, two, other, issues, the, first, one, i, blame, on, the, manufacturers, the, second, i, would, consider, a, design, flaw, of, the, lg, lcd, the, first, issue, is, that, the, screws, supplied, to, attach, the, bracket, to, the, tv, are, too, few, and, two, short, the, screws, are, only, 12mm, long, and, would, barely, catch, in, the, threads, of, the, tv, if, they, weren, t, recessed, at, all, most, mounting, threads, on, lcds, and, plasmas, are, partially, recessed, i, stopped, by, my, local, lowes, and, picked, up, two, packs, of, similar, screws, m4, 70, or, something, to, that, affect, 0, 80, a, packet, so, not, much, of, an, expenditure, just, a, big, hassle, i, needed, 20mm, long, screws, to, mount, this, to, the, tv, so, a, pretty, fair, difference, over, what, was, supplied, the, manufacturer, supplies, several, different, thread, and, gauge, options, but, only, one, shallow, length, of, each, set, the, second, issue, is, that, this, universal, mount, covered, the, power, and, hdmi, ports, on, the, back, of, the, 26le5300, again, i, think, this, is, more, of, an, issue, with, the, tv, then, the, mount, as, they, re, situated, rather, high, and, central, either, way, it, s, something, you, ll, want, to, check, on, your, tv, before, ordering, this, product, i, actually, returned, this, and, in, its, stead, purchased, a, similar, mount, from, the, same, company, thevideosecu, swing, lcd, wall, mount, 20, inch, extension, 55, lb, loading, capacity, for, lcd, tv, monitor, flat, screen, vesa, 75mm, 100, mm, 1usgets, very, high, marks, from, me, it, s, basically, the, same, arm, with, a, 75x75, to, 100x100, vesa, head, on, it, this, second, arm, did, not, have, any, of, the, manufacturing, errors, of, the, previous, model, and, fit, the, back, of, my, tv, perfectly, i, understand, that, it, s, a, very, affordable, mount, and, that, most, of, my, issues, may, have, been, resolved, with, a, replacement, however, i, just, can, t, give, this, mount, any, higher, rating, than, i, have)\n0972683275\tJunk, sags, wobbles, crooked, Rusted If less money had been spent on packaging and more on quality, it might be a good product.The product was double-boxed.  The included level was broken. I would prefer to use my own level and have good hardware instead of junk on both counts.  One of the pivots on the arm was so badly rusted out of the box it seemed to compromise the whole system.  Despite 6 huge lag screws and strong arms, the joints are not strong enough to keep the mount level as it extends and articulates.  Each time I moved it it had to be re-adjusted to be level.  The hardware had to be tightened so much to keep it from wobbling, it made moving it very difficult.  I used a 26\" tv.The whole thing went back in the box for a refund.\tWrappedArray(junk, sags, wobbles, crooked, rusted, if, less, money, had, been, spent, on, packaging, and, more, on, quality, it, might, be, a, good, product, the, product, was, double, boxed, the, included, level, was, broken, i, would, prefer, to, use, my, own, level, and, have, good, hardware, instead, of, junk, on, both, counts, one, of, the, pivots, on, the, arm, was, so, badly, rusted, out, of, the, box, it, seemed, to, compromise, the, whole, system, despite, 6, huge, lag, screws, and, strong, arms, the, joints, are, not, strong, enough, to, keep, the, mount, level, as, it, extends, and, articulates, each, time, i, moved, it, it, had, to, be, re, adjusted, to, be, level, the, hardware, had, to, be, tightened, so, much, to, keep, it, from, wobbling, it, made, moving, it, very, difficult, i, used, a, 26, tv, the, whole, thing, went, back, in, the, box, for, a, refund)\n1400501466\tExcellent hardware, boot from SD for full tablet functionality I bought this for my husband for his birthday after trying it out in BN and seeing how amazingly responsive it is. I did a lot of research and put a lot of thought into it, almost buying him a kindle fire because I thought it was more \"manly\" looking. After much consideration and comparison of hardware, I opted to get this one. The big selling point for me the fact that it can boot from the SD card. I have seen the N2A (Nook2Android) SD cards here on Amazon and wanted him to have that functionality but didn\u0027t want to pay that much for one, so I did some googling and figured out how to make one myself. I purchased a 16GB micro SD card and in about an hour and a half, had the thing booting to CM7 from the SD card, and now it has full tablet functionality. It runs AWESOME, super smooth and very responsive, full tablet capabilities including running 3rd party apps and access to the google play store, and all without rooting or voiding the warranty. All he has to do to put it back to stock is remove the SD card (which he never does! It is pretty much useless in its stock form unless you only do light web browsing and read ebooks) My husband LOVES it and couldn\u0027t be happier with it. He uses it every day. The only thing it doesn\u0027t have that I consider a negative is a camera. MY tablet (Acer Picasso) has a camera and I do actually use it quite a bit, but my husband says he wouldn\u0027t use one  on a tablet so it doesn\u0027t bother him anyway. He also dowloaded Kingsoft Office and now uses this for work as well. Unbeatable hardware at an unbeatable price.... and don\u0027t let the restrictive stock software stop you from buying it... just go around it!!!\tWrappedArray(excellent, hardware, boot, from, sd, for, full, tablet, functionality, i, bought, this, for, my, husband, for, his, birthday, after, trying, it, out, in, bn, and, seeing, how, amazingly, responsive, it, is, i, did, a, lot, of, research, and, put, a, lot, of, thought, into, it, almost, buying, him, a, kindle, fire, because, i, thought, it, was, more, manly, looking, after, much, consideration, and, comparison, of, hardware, i, opted, to, get, this, one, the, big, selling, point, for, me, the, fact, that, it, can, boot, from, the, sd, card, i, have, seen, the, n2a, nook2android, sd, cards, here, on, amazon, and, wanted, him, to, have, that, functionality, but, didn, t, want, to, pay, that, much, for, one, so, i, did, some, googling, and, figured, out, how, to, make, one, myself, i, purchased, a, 16gb, micro, sd, card, and, in, about, an, hour, and, a, half, had, the, thing, booting, to, cm7, from, the, sd, card, and, now, it, has, full, tablet, functionality, it, runs, awesome, super, smooth, and, very, responsive, full, tablet, capabilities, including, running, 3rd, party, apps, and, access, to, the, google, play, store, and, all, without, rooting, or, voiding, the, warranty, all, he, has, to, do, to, put, it, back, to, stock, is, remove, the, sd, card, which, he, never, does, it, is, pretty, much, useless, in, its, stock, form, unless, you, only, do, light, web, browsing, and, read, ebooks, my, husband, loves, it, and, couldn, t, be, happier, with, it, he, uses, it, every, day, the, only, thing, it, doesn, t, have, that, i, consider, a, negative, is, a, camera, my, tablet, acer, picasso, has, a, camera, and, i, do, actually, use, it, quite, a, bit, but, my, husband, says, he, wouldn, t, use, one, on, a, tablet, so, it, doesn, t, bother, him, anyway, he, also, dowloaded, kingsoft, office, and, now, uses, this, for, work, as, well, unbeatable, hardware, at, an, unbeatable, price, and, don, t, let, the, restrictive, stock, software, stop, you, from, buying, it, just, go, around, it)\n"
+      },
+      "dateCreated": "Jan 11, 2018 12:32:45 PM",
+      "dateStarted": "Jan 12, 2018 9:52:00 PM",
+      "dateFinished": "Jan 12, 2018 9:52:02 PM",
+      "status": "FINISHED",
+      "progressUpdateIntervalMs": 500
+    },
+    {
+      "text": "%md\n# StopWord Removal\nLet\u0027s remove some common stop words that provide no signal or infomrmation for our predictive task",
+      "user": "davidgillen@precocityllc.com",
+      "dateUpdated": "Jan 12, 2018 7:39:57 PM",
+      "config": {
+        "colWidth": 12.0,
+        "graph": {
+          "mode": "table",
+          "height": 300.0,
+          "optionOpen": false,
+          "keys": [],
+          "values": [],
+          "groups": [],
+          "scatter": {}
+        },
+        "enabled": true,
+        "editorMode": "ace/mode/markdown",
+        "editorHide": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "jobName": "paragraph_1515594478576_85866090",
+      "id": "20180110-142758_1907212191_q_6SHC1BMTXT1515702316",
+      "result": {
+        "code": "SUCCESS",
+        "type": "HTML",
+        "msg": "\u003cdiv class\u003d\"markdown-body\"\u003e\n\u003ch1\u003eStopWord Removal\u003c/h1\u003e\n\u003cp\u003eLet\u0026rsquo;s remove some common stop words that provide no signal or infomrmation for our predictive task\u003c/p\u003e\n\u003c/div\u003e"
+      },
+      "dateCreated": "Jan 10, 2018 2:27:58 PM",
+      "dateStarted": "Jan 12, 2018 7:39:52 PM",
+      "dateFinished": "Jan 12, 2018 7:39:52 PM",
+      "status": "FINISHED",
+      "progressUpdateIntervalMs": 500
+    },
+    {
+      "text": "var remover \u003d new StopWordsRemover()\n  .setInputCol(\"regexOutput\")\n  .setOutputCol(\"stopWordsOutput\")\n  \nvar stopWords \u003d Array(\"lens\",\"tv\",\"drive\",\"one\",\"case\",\"2\",\"video\",\"battery\",\"1\",\"screen\",\"unit\",\"camera\",\"usb\",\"3\",\"would\",\"also\",\"card\",\"sound\",\"use\") ++ remover.getStopWords\nremover \u003d remover.setStopWords(stopWords)\nvar filteredDF \u003d remover.transform(tokenizedDF)\nfilteredDF.select(\"asin\",\"regexOutput\",\"stopWordsOutput\").show()",
+      "user": "davidgillen@precocityllc.com",
+      "dateUpdated": "Jan 15, 2018 3:22:05 PM",
+      "config": {
+        "colWidth": 12.0,
+        "graph": {
+          "mode": "table",
+          "height": 300.0,
+          "optionOpen": false,
+          "keys": [],
+          "values": [],
+          "groups": [],
+          "scatter": {}
+        },
+        "enabled": true,
+        "editorMode": "ace/mode/scala",
+        "tableHide": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "paragraphProgress": {
+        "jobs": [
+          {
+            "id": 3,
+            "jobUrl": "https://azure.qubole.com/cluster-proxy?encodedUrl\u003dhttp%3A%2F%2F10.0.0.5%3A8088%2Fproxy%2Fapplication_1515764277505_0008/jobs/job?spark\u003dtrue\u0026id\u003d3",
+            "numTasks": 1,
+            "numCompletedTasks": 1,
+            "stages": [
+              {
+                "id": 3,
+                "completed": true,
+                "stageUrl": "https://azure.qubole.com/cluster-proxy?encodedUrl\u003dhttp%3A%2F%2F10.0.0.5%3A8088%2Fproxy%2Fapplication_1515764277505_0008/stages/stage/?id\u003d3\u0026attempt\u003d0",
+                "numCompleteTasks": 1,
+                "numActiveTasks": 0,
+                "numFailedTasks": 0,
+                "numTotalTasks": 1
+              }
+            ],
+            "status": "Success"
+          }
+        ],
+        "numCompletedTasks": 1,
+        "numTasks": 1,
+        "truncated": false
+      },
+      "jobName": "paragraph_1515594490437_652631868",
+      "id": "20180110-142810_931867535_q_6SHC1BMTXT1515702316",
+      "result": {
+        "code": "SUCCESS",
+        "type": "TEXT",
+        "msg": "\nremover: org.apache.spark.ml.feature.StopWordsRemover \u003d stopWords_ea90f753f47d\nstopWords: Array[String] \u003d Array(lens, tv, drive, one, case, 2, video, battery, 1, screen, unit, camera, usb, 3, would, also, card, sound, use, i, me, my, myself, we, our, ours, ourselves, you, your, yours, yourself, yourselves, he, him, his, himself, she, her, hers, herself, it, its, itself, they, them, their, theirs, themselves, what, which, who, whom, this, that, these, those, am, is, are, was, were, be, been, being, have, has, had, having, do, does, did, doing, a, an, the, and, but, if, or, because, as, until, while, of, at, by, for, with, about, against, between, into, through, during, before, after, above, below, to, from, up, down, in, out, on, off, over, under, again, further, then, once, here, there, when, where, why, how, all, any, both, each, few, more, most, other, some, suc...\nremover: org.apache.spark.ml.feature.StopWordsRemover \u003d stopWords_ea90f753f47d\n\nfilteredDF: org.apache.spark.sql.DataFrame \u003d [asin: string, helpful: array\u003cbigint\u003e ... 16 more fields]\n+----------+--------------------+--------------------+\n|      asin|         regexOutput|     stopWordsOutput|\n+----------+--------------------+--------------------+\n|0528881469|[very, disappoint...|[disappointed, pr...|\n|0528881469|[1st, impression,...|[1st, impression,...|\n|0972683275|[real, value, for...|[real, value, mon...|\n|0972683275|[what, a, piece, ...|[piece, junk, che...|\n|0972683275|[excellent, at, a...|[excellent, price...|\n|0972683275|[it, works, but, ...|[works, could, be...|\n|0972683275|[excellent, mount...|[excellent, mount...|\n|0972683275|[poor, quality, c...|[poor, quality, c...|\n|0972683275|[junk, sags, wobb...|[junk, sags, wobb...|\n|1400501466|[excellent, hardw...|[excellent, hardw...|\n|1400501466|[outstanding, 7, ...|[outstanding, 7, ...|\n|1400501466|[nook, tablet, th...|[nook, tablet, no...|\n|1400501466|[tablet, good, su...|[tablet, good, su...|\n|1400501466|[very, limited, u...|[limited, unless,...|\n|1400501466|[memory, card, is...|[memory, issues, ...|\n|1400501520|[great, little, d...|[great, little, d...|\n|1400501520|[best, screen, ou...|[best, 7, tablets...|\n|1400501520|[initially, liked...|[initially, liked...|\n|1400501520|[great, product, ...|[great, product, ...|\n|1400501520|[best, tablet, on...|[best, tablet, bu...|\n+----------+--------------------+--------------------+\nonly showing top 20 rows\n\n"
+      },
+      "dateCreated": "Jan 10, 2018 2:28:10 PM",
+      "dateStarted": "Jan 12, 2018 9:53:31 PM",
+      "dateFinished": "Jan 12, 2018 9:53:34 PM",
+      "status": "FINISHED",
+      "progressUpdateIntervalMs": 500
+    },
+    {
+      "text": "%md\n# Compute number of words",
+      "user": "davidgillen@precocityllc.com",
+      "dateUpdated": "Jan 12, 2018 7:40:06 PM",
+      "config": {
+        "colWidth": 12.0,
+        "graph": {
+          "mode": "table",
+          "height": 300.0,
+          "optionOpen": false,
+          "keys": [],
+          "values": [],
+          "groups": [],
+          "scatter": {}
+        },
+        "enabled": true,
+        "editorMode": "ace/mode/markdown",
+        "editorHide": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "jobName": "paragraph_1515616088408_-1598597337",
+      "id": "20180110-202808_1151525844_q_6SHC1BMTXT1515702316",
+      "result": {
+        "code": "SUCCESS",
+        "type": "HTML",
+        "msg": "\u003cdiv class\u003d\"markdown-body\"\u003e\n\u003ch1\u003eCompute number of words\u003c/h1\u003e\n\u003c/div\u003e"
+      },
+      "dateCreated": "Jan 10, 2018 8:28:08 PM",
+      "dateStarted": "Jan 12, 2018 7:40:03 PM",
+      "dateFinished": "Jan 12, 2018 7:40:03 PM",
+      "status": "FINISHED",
+      "progressUpdateIntervalMs": 500
+    },
+    {
+      "text": "filteredDF.createOrReplaceTempView(\"reviews\")\nval filterByLengthUDF \u003d sqlContext.udf.register(\"NumWords\", (x:WrappedArray[String]) \u003d\u003e x.length)\nfilteredDF \u003d sqlContext.sql(\"select *, NumWords(stopWordsOutput) as numWords from reviews\")\nfilteredDF.createOrReplaceTempView(\"reviews\")",
+      "user": "davidgillen@precocityllc.com",
+      "dateUpdated": "Jan 15, 2018 3:22:08 PM",
+      "config": {
+        "colWidth": 12.0,
+        "graph": {
+          "mode": "table",
+          "height": 300.0,
+          "optionOpen": false,
+          "keys": [],
+          "values": [],
+          "groups": [],
+          "scatter": {}
+        },
+        "enabled": true,
+        "editorMode": "ace/mode/scala",
+        "tableHide": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "paragraphProgress": {
+        "jobs": [],
+        "numCompletedTasks": 0,
+        "numTasks": 0,
+        "truncated": false
+      },
+      "jobName": "paragraph_1515595029921_550427102",
+      "id": "20180110-143709_254528079_q_6SHC1BMTXT1515702316",
+      "result": {
+        "code": "SUCCESS",
+        "type": "TEXT",
+        "msg": "\nfilterByLengthUDF: org.apache.spark.sql.expressions.UserDefinedFunction \u003d UserDefinedFunction(\u003cfunction1\u003e,IntegerType,Some(List(ArrayType(StringType,true))))\n\nfilteredDF: org.apache.spark.sql.DataFrame \u003d [asin: string, helpful: array\u003cbigint\u003e ... 17 more fields]\n"
+      },
+      "dateCreated": "Jan 10, 2018 2:37:09 PM",
+      "dateStarted": "Jan 12, 2018 9:54:30 PM",
+      "dateFinished": "Jan 12, 2018 9:54:32 PM",
+      "status": "FINISHED",
+      "progressUpdateIntervalMs": 500
+    },
+    {
+      "text": "%md\n# BiGrams\nBigrams are 2 consecutive tokens/words and can better capture the sequential nature of reviews than just single words.  ",
+      "user": "davidgillen@precocityllc.com",
+      "dateUpdated": "Jan 12, 2018 7:40:21 PM",
+      "config": {
+        "colWidth": 12.0,
+        "graph": {
+          "mode": "table",
+          "height": 300.0,
+          "optionOpen": false,
+          "keys": [],
+          "values": [],
+          "groups": [],
+          "scatter": {}
+        },
+        "enabled": true,
+        "editorMode": "ace/mode/markdown",
+        "editorHide": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "jobName": "paragraph_1515614600712_-183019646",
+      "id": "20180110-200320_2022445575_q_6SHC1BMTXT1515702316",
+      "result": {
+        "code": "SUCCESS",
+        "type": "HTML",
+        "msg": "\u003cdiv class\u003d\"markdown-body\"\u003e\n\u003ch1\u003eBiGrams\u003c/h1\u003e\n\u003cp\u003eBigrams are 2 consecutive tokens/words and can better capture the sequential nature of reviews than just single words.\u003c/p\u003e\n\u003c/div\u003e"
+      },
+      "dateCreated": "Jan 10, 2018 8:03:20 PM",
+      "dateStarted": "Jan 12, 2018 7:40:18 PM",
+      "dateFinished": "Jan 12, 2018 7:40:18 PM",
+      "status": "FINISHED",
+      "progressUpdateIntervalMs": 500
+    },
+    {
+      "text": "import scala.collection.mutable.WrappedArray\nval bigramTF \u003d new NGram().setN(2).setInputCol(\"stopWordsOutput\").setOutputCol(\"bigrams\")\nval bigramDf \u003d bigramTF.transform(filteredDF)\nval concat2ArraysUDF \u003d udf { (uni: WrappedArray[String],bi:WrappedArray[String]) \u003d\u003e uni ++ bi }\n//concat words \u0026 bigrams into one column called uniAndBi\nvar newTF \u003d bigramDf.withColumn(\"uniAndBi\",concat2ArraysUDF(bigramDf(\"stopWordsOutput\"), bigramDf(\"bigrams\")))\nnewTF.createOrReplaceTempView(\"reviews\")",
+      "user": "davidgillen@precocityllc.com",
+      "dateUpdated": "Jan 15, 2018 3:22:11 PM",
+      "config": {
+        "colWidth": 12.0,
+        "graph": {
+          "mode": "table",
+          "height": 300.0,
+          "optionOpen": false,
+          "keys": [],
+          "values": [],
+          "groups": [],
+          "scatter": {}
+        },
+        "enabled": true,
+        "editorMode": "ace/mode/scala",
+        "tableHide": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "paragraphProgress": {
+        "jobs": [],
+        "numCompletedTasks": 0,
+        "numTasks": 0,
+        "truncated": false
+      },
+      "jobName": "paragraph_1515601095577_-1568115310",
+      "id": "20180110-161815_1524737661_q_6SHC1BMTXT1515702316",
+      "result": {
+        "code": "SUCCESS",
+        "type": "TEXT",
+        "msg": "\nimport scala.collection.mutable.WrappedArray\n\nbigramTF: org.apache.spark.ml.feature.NGram \u003d ngram_9042fe5d41df\n\nbigramDf: org.apache.spark.sql.DataFrame \u003d [asin: string, helpful: array\u003cbigint\u003e ... 18 more fields]\n\nconcat2ArraysUDF: org.apache.spark.sql.expressions.UserDefinedFunction \u003d UserDefinedFunction(\u003cfunction2\u003e,ArrayType(StringType,true),Some(List(ArrayType(StringType,true), ArrayType(StringType,true))))\n\nnewTF: org.apache.spark.sql.DataFrame \u003d [asin: string, helpful: array\u003cbigint\u003e ... 19 more fields]\n"
+      },
+      "dateCreated": "Jan 10, 2018 4:18:15 PM",
+      "dateStarted": "Jan 12, 2018 9:55:36 PM",
+      "dateFinished": "Jan 12, 2018 9:55:37 PM",
+      "status": "FINISHED",
+      "progressUpdateIntervalMs": 500
+    },
+    {
+      "text": "%spark.sql\nselect asin, stopWordsOutput,bigrams from reviews where numWords \u003c 50 limit 5",
+      "user": "davidgillen@precocityllc.com",
+      "dateUpdated": "Jan 15, 2018 3:22:14 PM",
+      "config": {
+        "colWidth": 12.0,
+        "graph": {
+          "mode": "table",
+          "height": 300.0,
+          "optionOpen": false,
+          "keys": [
+            {
+              "name": "asin",
+              "index": 0.0,
+              "aggr": "sum"
+            }
+          ],
+          "values": [
+            {
+              "name": "stopWordsOutput",
+              "index": 1.0,
+              "aggr": "sum"
+            }
+          ],
+          "groups": [],
+          "scatter": {
+            "xAxis": {
+              "name": "asin",
+              "index": 0.0,
+              "aggr": "sum"
+            },
+            "yAxis": {
+              "name": "stopWordsOutput",
+              "index": 1.0,
+              "aggr": "sum"
+            }
+          }
+        },
+        "enabled": true,
+        "editorMode": "ace/mode/sql",
+        "tableHide": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "paragraphProgress": {
+        "jobs": [
+          {
+            "id": 4,
+            "jobUrl": "https://azure.qubole.com/cluster-proxy?encodedUrl\u003dhttp%3A%2F%2F10.0.0.5%3A8088%2Fproxy%2Fapplication_1515764277505_0008/jobs/job?spark\u003dtrue\u0026id\u003d4",
+            "numTasks": 1,
+            "numCompletedTasks": 1,
+            "stages": [
+              {
+                "id": 4,
+                "completed": true,
+                "stageUrl": "https://azure.qubole.com/cluster-proxy?encodedUrl\u003dhttp%3A%2F%2F10.0.0.5%3A8088%2Fproxy%2Fapplication_1515764277505_0008/stages/stage/?id\u003d4\u0026attempt\u003d0",
+                "numCompleteTasks": 1,
+                "numActiveTasks": 0,
+                "numFailedTasks": 0,
+                "numTotalTasks": 1
+              }
+            ],
+            "status": "Success"
+          }
+        ],
+        "numCompletedTasks": 1,
+        "numTasks": 1,
+        "truncated": false
+      },
+      "jobName": "paragraph_1515617109581_2109879651",
+      "id": "20180110-204509_888879914_q_6SHC1BMTXT1515702316",
+      "result": {
+        "code": "SUCCESS",
+        "type": "TABLE",
+        "msg": "asin\tstopWordsOutput\tbigrams\n0972683275\tWrappedArray(real, value, money, quality, excellent, instructions, clear, clear, tilt, feature, enough, level, finished, careful, get, wall, bracket, real, vertical, using, 23, inch, computer, really, need, level, reading, everything, needed, plus, lots, extra, hardware, different, situations)\tWrappedArray(real value, value money, money quality, quality excellent, excellent instructions, instructions clear, clear clear, clear tilt, tilt feature, feature enough, enough level, level finished, finished careful, careful get, get wall, wall bracket, bracket real, real vertical, vertical using, using 23, 23 inch, inch computer, computer really, really need, need level, level reading, reading everything, everything needed, needed plus, plus lots, lots extra, extra hardware, hardware different, different situations)\n0972683275\tWrappedArray(excellent, price, mounted, rv, holds, 26, lcd, dvd, combo, installation, easy, mount, works, great, prepared, pay, 5, times, price, mount, work, wanted, happier)\tWrappedArray(excellent price, price mounted, mounted rv, rv holds, holds 26, 26 lcd, lcd dvd, dvd combo, combo installation, installation easy, easy mount, mount works, works great, great prepared, prepared pay, pay 5, 5 times, times price, price mount, mount work, work wanted, wanted happier)\n0972683275\tWrappedArray(excellent, mount, listen, reviewers, screws, came, concrete, wood, dry, wall, screws, need, stud, finder, 8, holes, total, mounting, plate, plenty, enough, hit, center, stud, sturdy, good, looking, whole, set, machine, screws, guess, types, plus, couple, tools, need)\tWrappedArray(excellent mount, mount listen, listen reviewers, reviewers screws, screws came, came concrete, concrete wood, wood dry, dry wall, wall screws, screws need, need stud, stud finder, finder 8, 8 holes, holes total, total mounting, mounting plate, plate plenty, plenty enough, enough hit, hit center, center stud, stud sturdy, sturdy good, good looking, looking whole, whole set, set machine, machine screws, screws guess, guess types, types plus, plus couple, couple tools, tools need)\n1400501466\tWrappedArray(tablet, good, support, terrible, customer, support, people, barnes, noble, site, clueless, useless, providing, help, buy, tablet, store)\tWrappedArray(tablet good, good support, support terrible, terrible customer, customer support, support people, people barnes, barnes noble, noble site, site clueless, clueless useless, useless providing, providing help, help buy, buy tablet, tablet store)\n1400501466\tWrappedArray(memory, issues, accepts, 32gb, micro, sd, cards, work, properly, 32gb, mine, boot, used, much, energy, issue, customer, service, told, unplug, booting, insert, returned, purchased, samsung, galaxy, tab, 7, 0, plus, funny, thing, barnes, noble, rrjected, review)\tWrappedArray(memory issues, issues accepts, accepts 32gb, 32gb micro, micro sd, sd cards, cards work, work properly, properly 32gb, 32gb mine, mine boot, boot used, used much, much energy, energy issue, issue customer, customer service, service told, told unplug, unplug booting, booting insert, insert returned, returned purchased, purchased samsung, samsung galaxy, galaxy tab, tab 7, 7 0, 0 plus, plus funny, funny thing, thing barnes, barnes noble, noble rrjected, rrjected review)\n"
+      },
+      "dateCreated": "Jan 10, 2018 8:45:09 PM",
+      "dateStarted": "Jan 12, 2018 9:55:42 PM",
+      "dateFinished": "Jan 12, 2018 9:55:43 PM",
+      "status": "FINISHED",
+      "progressUpdateIntervalMs": 500
+    },
+    {
+      "text": "%md\n## Featurization\nBefore applying Machine Learning (ML) models, we\u0027ll need to featurize our bigrams into numeric values. \n**Term Frequency - Inverse Document Frequency (TF-IDF)** is a very popular featurization method that scales well to large datasets. \n\nSpark\u0027s CountVectorizer applies a TF algorithm to in InputCol \u0026 returns a SparseVector that contains the word indices \u0026 their counts\n",
+      "user": "davidgillen@precocityllc.com",
+      "dateUpdated": "Jan 12, 2018 7:40:38 PM",
+      "config": {
+        "colWidth": 12.0,
+        "graph": {
+          "mode": "table",
+          "height": 300.0,
+          "optionOpen": false,
+          "keys": [],
+          "values": [],
+          "groups": [],
+          "scatter": {}
+        },
+        "enabled": true,
+        "editorMode": "ace/mode/markdown",
+        "editorHide": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "jobName": "paragraph_1515676750187_298409029",
+      "id": "20180111-131910_263021081_q_6SHC1BMTXT1515702316",
+      "result": {
+        "code": "SUCCESS",
+        "type": "HTML",
+        "msg": "\u003cdiv class\u003d\"markdown-body\"\u003e\n\u003ch2\u003eFeaturization\u003c/h2\u003e\n\u003cp\u003eBefore applying Machine Learning (ML) models, we\u0026rsquo;ll need to featurize our bigrams into numeric values.\u003cbr/\u003e\u003cstrong\u003eTerm Frequency - Inverse Document Frequency (TF-IDF)\u003c/strong\u003e is a very popular featurization method that scales well to large datasets. \u003c/p\u003e\n\u003cp\u003eSpark\u0026rsquo;s CountVectorizer applies a TF algorithm to in InputCol \u0026amp; returns a SparseVector that contains the word indices \u0026amp; their counts\u003c/p\u003e\n\u003c/div\u003e"
+      },
+      "dateCreated": "Jan 11, 2018 1:19:10 PM",
+      "dateStarted": "Jan 12, 2018 7:40:30 PM",
+      "dateFinished": "Jan 12, 2018 7:40:30 PM",
+      "status": "FINISHED",
+      "progressUpdateIntervalMs": 500
+    },
+    {
+      "text": "var countTF \u003d new CountVectorizer().setInputCol(\"bigrams\").setOutputCol(\"countFeatures\")\nvar badProducts \u003d newTF.filter(\"overall \u003c 2\")\nvar countModel \u003d countTF.fit(badProducts)\nvar featurizedData \u003d countModel.transform(badProducts)\nfeaturizedData.filter(\"numWords \u003c 50\").select(\"asin\",\"Category\",\"countFeatures\").show(false)",
+      "user": "davidgillen@precocityllc.com",
+      "dateUpdated": "Jan 15, 2018 3:22:21 PM",
+      "config": {
+        "colWidth": 12.0,
+        "graph": {
+          "mode": "table",
+          "height": 300.0,
+          "optionOpen": false,
+          "keys": [],
+          "values": [],
+          "groups": [],
+          "scatter": {}
+        },
+        "enabled": true,
+        "editorMode": "ace/mode/scala",
+        "tableHide": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "paragraphProgress": {
+        "jobs": [
+          {
+            "id": 5,
+            "jobUrl": "https://azure.qubole.com/cluster-proxy?encodedUrl\u003dhttp%3A%2F%2F10.0.0.5%3A8088%2Fproxy%2Fapplication_1515764277505_0008/jobs/job?spark\u003dtrue\u0026id\u003d5",
+            "numTasks": 24,
+            "numCompletedTasks": 24,
+            "stages": [
+              {
+                "id": 5,
+                "completed": true,
+                "stageUrl": "https://azure.qubole.com/cluster-proxy?encodedUrl\u003dhttp%3A%2F%2F10.0.0.5%3A8088%2Fproxy%2Fapplication_1515764277505_0008/stages/stage/?id\u003d5\u0026attempt\u003d0",
+                "numCompleteTasks": 12,
+                "numActiveTasks": 0,
+                "numFailedTasks": 0,
+                "numTotalTasks": 12
+              },
+              {
+                "id": 6,
+                "completed": true,
+                "stageUrl": "https://azure.qubole.com/cluster-proxy?encodedUrl\u003dhttp%3A%2F%2F10.0.0.5%3A8088%2Fproxy%2Fapplication_1515764277505_0008/stages/stage/?id\u003d6\u0026attempt\u003d0",
+                "numCompleteTasks": 12,
+                "numActiveTasks": 0,
+                "numFailedTasks": 0,
+                "numTotalTasks": 12
+              }
+            ],
+            "status": "Success"
+          },
+          {
+            "id": 6,
+            "jobUrl": "https://azure.qubole.com/cluster-proxy?encodedUrl\u003dhttp%3A%2F%2F10.0.0.5%3A8088%2Fproxy%2Fapplication_1515764277505_0008/jobs/job?spark\u003dtrue\u0026id\u003d6",
+            "numTasks": 24,
+            "numCompletedTasks": 12,
+            "stages": [
+              {
+                "id": 7,
+                "completed": true,
+                "stageUrl": "https://azure.qubole.com/cluster-proxy?encodedUrl\u003dhttp%3A%2F%2F10.0.0.5%3A8088%2Fproxy%2Fapplication_1515764277505_0008/stages/stage/?id\u003d7\u0026attempt\u003d0",
+                "numCompleteTasks": 0,
+                "numActiveTasks": 0,
+                "numFailedTasks": 0,
+                "numTotalTasks": 0
+              },
+              {
+                "id": 8,
+                "completed": true,
+                "stageUrl": "https://azure.qubole.com/cluster-proxy?encodedUrl\u003dhttp%3A%2F%2F10.0.0.5%3A8088%2Fproxy%2Fapplication_1515764277505_0008/stages/stage/?id\u003d8\u0026attempt\u003d0",
+                "numCompleteTasks": 12,
+                "numActiveTasks": 0,
+                "numFailedTasks": 0,
+                "numTotalTasks": 12
+              }
+            ],
+            "status": "Success"
+          },
+          {
+            "id": 7,
+            "jobUrl": "https://azure.qubole.com/cluster-proxy?encodedUrl\u003dhttp%3A%2F%2F10.0.0.5%3A8088%2Fproxy%2Fapplication_1515764277505_0008/jobs/job?spark\u003dtrue\u0026id\u003d7",
+            "numTasks": 1,
+            "numCompletedTasks": 1,
+            "stages": [
+              {
+                "id": 9,
+                "completed": true,
+                "stageUrl": "https://azure.qubole.com/cluster-proxy?encodedUrl\u003dhttp%3A%2F%2F10.0.0.5%3A8088%2Fproxy%2Fapplication_1515764277505_0008/stages/stage/?id\u003d9\u0026attempt\u003d0",
+                "numCompleteTasks": 1,
+                "numActiveTasks": 0,
+                "numFailedTasks": 0,
+                "numTotalTasks": 1
+              }
+            ],
+            "status": "Success"
+          }
+        ],
+        "numCompletedTasks": 37,
+        "numTasks": 49,
+        "truncated": false
+      },
+      "jobName": "paragraph_1515594859879_-1776919518",
+      "id": "20180110-143419_95178827_q_6SHC1BMTXT1515702316",
+      "result": {
+        "code": "SUCCESS",
+        "type": "TEXT",
+        "msg": "\ncountTF: org.apache.spark.ml.feature.CountVectorizer \u003d cntVec_3c81c776bc83\n\nbadProducts: org.apache.spark.sql.Dataset[org.apache.spark.sql.Row] \u003d [asin: string, helpful: array\u003cbigint\u003e ... 19 more fields]\n\ncountModel: org.apache.spark.ml.feature.CountVectorizerModel \u003d cntVec_3c81c776bc83\n\nfeaturizedData: org.apache.spark.sql.DataFrame \u003d [asin: string, helpful: array\u003cbigint\u003e ... 20 more fields]\n+----------+-----------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+\n|asin      |Category   |countFeatures                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |\n+----------+-----------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+\n|1400501466|Electronics|(262144,[12,962,1414,1851,4343,7810,9135,16478,38113,167380,168599],[1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0])                                                                                                                                                                                                                                                                                                                                                                                            |\n|1400532620|Electronics|(262144,[780,1602,1751,3774,12434,15587,20213,24541,35708,36940,37385,38682,52067,74967,77932,80556,86997,89720,96167,109656,110566,112231,113196,122213,125850,127429,128713,131213,140051,141484,145189,147415,151376,154757,155371,155392,160942,161946,164651,164789,171382,173614,179687,183706,185967,186824],[1.0,1.0,1.0,1.0,2.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0])|\n|1400532655|Electronics|(262144,[191,1184,1851,4553,4798,8581,9135,26385,44394,46850,60802,63285,66014,66064,86682,101291,105618,109607,157643,169977,181366,207239,212038],[1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0])                                                                                                                                                                                                                                                            |\n|1400698987|Electronics|(262144,[1283,1851,2115,2636,2971,3907,10254,13122,17972,24377,37258,44601,45091,45198,69651,75955,76925,93782,106341,128536,132028,155834,172638,181581,182837,183405],[2.0,1.0,2.0,1.0,1.0,2.0,1.0,1.0,1.0,1.0,1.0,2.0,1.0,2.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0])                                                                                                                                                                                                                            |\n|6301977173|Electronics|(262144,[359,19022,29351,44398,60880,73781,107495,121439,137540,259264],[1.0,1.0,1.0,2.0,1.0,1.0,1.0,1.0,1.0,1.0])                                                                                                                                                                                                                                                                                                                                                                                            |\n|9573212919|Electronics|(262144,[713,2600,5017,5786,14084,17701,22109,24184,28610,33445,47562,49641,50795,53621,89290,145212,177304],[1.0,1.0,1.0,2.0,1.0,1.0,1.0,1.0,1.0,1.0,2.0,1.0,1.0,1.0,1.0,1.0,1.0])                                                                                                                                                                                                                                                                                                                           |\n|9575871979|Electronics|(262144,[0,1298,1414,4679,8468,8508,17294,20553,21414,43911,49023,53684,60553,76794,119046,131632,148356,153442,179341,184475,197589,216016,228932],[1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0])                                                                                                                                                                                                                                                            |\n|B000001OMT|Electronics|(262144,[263,334,2166,2326,4386,11110,15304,19856,44229,95456,98317,118385,130445,158143,167292,176611,179170],[1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,2.0,1.0,2.0,2.0,2.0,2.0])                                                                                                                                                                                                                                                                                                                         |\n|B00000J08Q|Electronics|(262144,[2,53,362,363,4465,5633,7427,9460,12528,25011,74557,85615,145506],[1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0])                                                                                                                                                                                                                                                                                                                                                                              |\n|B00000J0AR|Electronics|(262144,[10828,23743,52338,86046,97983,127057,143663,180247,186266,206110],[1.0,1.0,3.0,1.0,1.0,1.0,1.0,2.0,1.0,1.0])                                                                                                                                                                                                                                                                                                                                                                                         |\n|B00000J1V5|Electronics|(262144,[670,1706,3073,4179,4937,6065,10486,13363,16399,20409,20456,27543,65851,149758,182416,222108,233955],[1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0])                                                                                                                                                                                                                                                                                                                           |\n|B00000JBIA|Electronics|(262144,[250,853,1242,1281,5688,12610,15677,27722,32937,69378,74548,85964,112857,128947,154403,155004,163460,179963,210014,233286],[1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0])                                                                                                                                                                                                                                                                                         |\n|B00000JBLJ|Electronics|(262144,[3208,5466,6739,7436,11719,15429,115693,150054,157092],[1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0])                                                                                                                                                                                                                                                                                                                                                                                                         |\n|B00000JDF6|Electronics|(262144,[21,59,3513,3974,5603,6175,9530,13070,13544,14917,23809,27306,69256,71663,76260,82367,86401,91364,93049,105017,119888,154481,158503,179903,187631,261495],[1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,2.0,1.0,1.0,1.0,1.0,1.0,1.0,2.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0])                                                                                                                                                                                                                                  |\n|B00000JGN9|Electronics|(262144,[9,43,278,1113,4419,8008,9818,25399,29432,37896,46884,49969,52644,59686,134953,183169],[1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0])                                                                                                                                                                                                                                                                                                                                             |\n|B00000JSGF|Electronics|(262144,[13,213,1879,2571,3778,4286,24599,29214,93702,127610,139936,150553,185873,204538],[1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0])                                                                                                                                                                                                                                                                                                                                                          |\n|B00000JYWQ|Electronics|(262144,[153,742,1511,1560,1860,2473,4507,16375,18241,40258,46280,46376,48430,49815,67472,105903,131618,140527,141809,146493,158400,173274,187062,241738,257258],[1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0])                                                                                                                                                                                                                                       |\n|B00000K2YR|Electronics|(262144,[3500,6569,43558,113303,126441,220666],[1.0,1.0,1.0,1.0,1.0,1.0])                                                                                                                                                                                                                                                                                                                                                                                                                                     |\n|B00000K2YR|Electronics|(262144,[2,19,1117,2858,3440,3503,3574,9737,17789,19788,21386,21553,22648,32635,52023,52722,57806,61119,64123,67626,82092,84006,99620,136660,143627,173087,187045,236548,238195],[1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0])                                                                                                                                                                                                       |\n|B00001P4XH|Electronics|(262144,[30,113,6291,8840,11577,36074,41836,71640,80009,94951,126656,153899,169873,185629],[1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0])                                                                                                                                                                                                                                                                                                                                                         |\n+----------+-----------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+\nonly showing top 20 rows\n\n"
+      },
+      "dateCreated": "Jan 10, 2018 2:34:19 PM",
+      "dateStarted": "Jan 12, 2018 9:57:43 PM",
+      "dateFinished": "Jan 12, 2018 9:58:01 PM",
+      "status": "FINISHED",
+      "progressUpdateIntervalMs": 500
+    },
+    {
+      "text": "%md\nSee out we\u0027ve now featurized our text into a numeric features represented in the `countFeatures` column.  This column contains SparseVector in the form (totalSize,[wordIndicesForThisReview],[wordCountsForThisReview])",
+      "user": "davidgillen@precocityllc.com",
+      "dateUpdated": "Jan 12, 2018 7:41:03 PM",
+      "config": {
+        "colWidth": 12.0,
+        "graph": {
+          "mode": "table",
+          "height": 300.0,
+          "optionOpen": false,
+          "keys": [],
+          "values": [],
+          "groups": [],
+          "scatter": {}
+        },
+        "enabled": true,
+        "editorMode": "ace/mode/markdown",
+        "editorHide": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "jobName": "paragraph_1515682444285_1152855829",
+      "id": "20180111-145404_1950049737_q_6SHC1BMTXT1515702316",
+      "result": {
+        "code": "SUCCESS",
+        "type": "HTML",
+        "msg": "\u003cdiv class\u003d\"markdown-body\"\u003e\n\u003cp\u003eSee out we\u0026rsquo;ve now featurized our text into a numeric features represented in the \u003ccode\u003ecountFeatures\u003c/code\u003e column. This column contains SparseVector in the form (totalSize,[wordIndicesForThisReview],[wordCountsForThisReview])\u003c/p\u003e\n\u003c/div\u003e"
+      },
+      "dateCreated": "Jan 11, 2018 2:54:04 PM",
+      "dateStarted": "Jan 12, 2018 7:40:56 PM",
+      "dateFinished": "Jan 12, 2018 7:40:56 PM",
+      "status": "FINISHED",
+      "progressUpdateIntervalMs": 500
+    },
+    {
+      "text": "%md\n# Most Common Bigrams of Bad Products\nThe `countModel` contains a vocabulary in descending count order, so let\u0027s view the most common bigrams first",
+      "user": "davidgillen@precocityllc.com",
+      "dateUpdated": "Jan 12, 2018 7:41:13 PM",
+      "config": {
+        "colWidth": 12.0,
+        "graph": {
+          "mode": "table",
+          "height": 300.0,
+          "optionOpen": false,
+          "keys": [],
+          "values": [],
+          "groups": [],
+          "scatter": {}
+        },
+        "enabled": true,
+        "editorMode": "ace/mode/markdown",
+        "editorHide": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "jobName": "paragraph_1515682669292_1414806889",
+      "id": "20180111-145749_998476415_q_6SHC1BMTXT1515702316",
+      "result": {
+        "code": "SUCCESS",
+        "type": "HTML",
+        "msg": "\u003cdiv class\u003d\"markdown-body\"\u003e\n\u003ch1\u003eMost Common Bigrams of Bad Products\u003c/h1\u003e\n\u003cp\u003eThe \u003ccode\u003ecountModel\u003c/code\u003e contains a vocabulary in descending count order, so let\u0026rsquo;s view the most common bigrams first\u003c/p\u003e\n\u003c/div\u003e"
+      },
+      "dateCreated": "Jan 11, 2018 2:57:49 PM",
+      "dateStarted": "Jan 12, 2018 7:41:10 PM",
+      "dateFinished": "Jan 12, 2018 7:41:10 PM",
+      "status": "FINISHED",
+      "progressUpdateIntervalMs": 500
+    },
+    {
+      "text": "var wordsRDD \u003d sc.parallelize(countModel.vocabulary)\nvar wordDF \u003d wordsRDD.zipWithIndex().toDF(\"word\",\"index\")\nwordDF.show(40,false)",
+      "user": "davidgillen@precocityllc.com",
+      "dateUpdated": "Jan 15, 2018 3:22:29 PM",
+      "config": {
+        "colWidth": 12.0,
+        "graph": {
+          "mode": "table",
+          "height": 300.0,
+          "optionOpen": false,
+          "keys": [],
+          "values": [],
+          "groups": [],
+          "scatter": {}
+        },
+        "enabled": true,
+        "editorMode": "ace/mode/scala",
+        "tableHide": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "paragraphProgress": {
+        "jobs": [
+          {
+            "id": 8,
+            "jobUrl": "https://azure.qubole.com/cluster-proxy?encodedUrl\u003dhttp%3A%2F%2F10.0.0.5%3A8088%2Fproxy%2Fapplication_1515764277505_0008/jobs/job?spark\u003dtrue\u0026id\u003d8",
+            "numTasks": 7,
+            "numCompletedTasks": 7,
+            "stages": [
+              {
+                "id": 10,
+                "completed": true,
+                "stageUrl": "https://azure.qubole.com/cluster-proxy?encodedUrl\u003dhttp%3A%2F%2F10.0.0.5%3A8088%2Fproxy%2Fapplication_1515764277505_0008/stages/stage/?id\u003d10\u0026attempt\u003d0",
+                "numCompleteTasks": 7,
+                "numActiveTasks": 0,
+                "numFailedTasks": 0,
+                "numTotalTasks": 7
+              }
+            ],
+            "status": "Success"
+          },
+          {
+            "id": 9,
+            "jobUrl": "https://azure.qubole.com/cluster-proxy?encodedUrl\u003dhttp%3A%2F%2F10.0.0.5%3A8088%2Fproxy%2Fapplication_1515764277505_0008/jobs/job?spark\u003dtrue\u0026id\u003d9",
+            "numTasks": 1,
+            "numCompletedTasks": 1,
+            "stages": [
+              {
+                "id": 11,
+                "completed": true,
+                "stageUrl": "https://azure.qubole.com/cluster-proxy?encodedUrl\u003dhttp%3A%2F%2F10.0.0.5%3A8088%2Fproxy%2Fapplication_1515764277505_0008/stages/stage/?id\u003d11\u0026attempt\u003d0",
+                "numCompleteTasks": 1,
+                "numActiveTasks": 0,
+                "numFailedTasks": 0,
+                "numTotalTasks": 1
+              }
+            ],
+            "status": "Success"
+          }
+        ],
+        "numCompletedTasks": 8,
+        "numTasks": 8,
+        "truncated": false
+      },
+      "jobName": "paragraph_1515595679847_-1770226666",
+      "id": "20180110-144759_1956047491_q_6SHC1BMTXT1515702316",
+      "result": {
+        "code": "SUCCESS",
+        "type": "TEXT",
+        "msg": "\nwordsRDD: org.apache.spark.rdd.RDD[String] \u003d ParallelCollectionRDD[36] at parallelize at \u003cconsole\u003e:84\n\nwordDF: org.apache.spark.sql.DataFrame \u003d [word: string, index: bigint]\n+-----------------+-----+\n|word             |index|\n+-----------------+-----+\n|customer service |0    |\n|tech support     |1    |\n|waste money      |2    |\n|even though      |3    |\n|windows 7        |4    |\n|blu ray          |5    |\n|much better      |6    |\n|windows 8        |7    |\n|every time       |8    |\n|stay away        |9    |\n|stopped working  |10   |\n|piece junk       |11   |\n|customer support |12   |\n|brand new        |13   |\n|going back       |14   |\n|make sure        |15   |\n|looks like       |16   |\n|picture quality  |17   |\n|dvd player       |18   |\n|poor quality     |19   |\n|send back        |20   |\n|buyer beware     |21   |\n|save money       |22   |\n|sent back        |23   |\n|year old         |24   |\n|could get        |25   |\n|quality control  |26   |\n|first time       |27   |\n|waste time       |28   |\n|buy another      |29   |\n|worked fine      |30   |\n|amazon com       |31   |\n|bottom line      |32   |\n|web site         |33   |\n|something else   |34   |\n|never buy        |35   |\n|technical support|36   |\n|5 stars          |37   |\n|get work         |38   |\n|operating system |39   |\n+-----------------+-----+\nonly showing top 40 rows\n\n"
+      },
+      "dateCreated": "Jan 10, 2018 2:47:59 PM",
+      "dateStarted": "Jan 12, 2018 9:59:05 PM",
+      "dateFinished": "Jan 12, 2018 9:59:06 PM",
+      "status": "FINISHED",
+      "progressUpdateIntervalMs": 500
+    },
+    {
+      "text": "%md\nRecall we filtered on reviews of just the bad products rated \u003c 1, so it is intuitive that bigrams such as `customer service`, `waste money`, `stopped working`, \u0026 `piece junk` are among the most frequent",
+      "user": "davidgillen@precocityllc.com",
+      "dateUpdated": "Jan 12, 2018 7:41:44 PM",
+      "config": {
+        "colWidth": 12.0,
+        "graph": {
+          "mode": "table",
+          "height": 300.0,
+          "optionOpen": false,
+          "keys": [],
+          "values": [],
+          "groups": [],
+          "scatter": {}
+        },
+        "enabled": true,
+        "editorMode": "ace/mode/markdown",
+        "editorHide": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "jobName": "paragraph_1515682850787_-1572555426",
+      "id": "20180111-150050_1147079889_q_6SHC1BMTXT1515702316",
+      "result": {
+        "code": "SUCCESS",
+        "type": "HTML",
+        "msg": "\u003cdiv class\u003d\"markdown-body\"\u003e\n\u003cp\u003eRecall we filtered on reviews of just the bad products rated \u0026lt; 1, so it is intuitive that bigrams such as \u003ccode\u003ecustomer service\u003c/code\u003e, \u003ccode\u003ewaste money\u003c/code\u003e, \u003ccode\u003estopped working\u003c/code\u003e, \u0026amp; \u003ccode\u003epiece junk\u003c/code\u003e are among the most frequent\u003c/p\u003e\n\u003c/div\u003e"
+      },
+      "dateCreated": "Jan 11, 2018 3:00:50 PM",
+      "dateStarted": "Jan 12, 2018 7:41:41 PM",
+      "dateFinished": "Jan 12, 2018 7:41:41 PM",
+      "status": "FINISHED",
+      "progressUpdateIntervalMs": 500
+    },
+    {
+      "text": "%md\n# Most Common Bigrams of Good Products\nNow let\u0027s compute the Term Frequency of reviews of good products",
+      "user": "davidgillen@precocityllc.com",
+      "dateUpdated": "Jan 12, 2018 7:41:54 PM",
+      "config": {
+        "colWidth": 12.0,
+        "graph": {
+          "mode": "table",
+          "height": 300.0,
+          "optionOpen": false,
+          "keys": [],
+          "values": [],
+          "groups": [],
+          "scatter": {}
+        },
+        "enabled": true,
+        "editorMode": "ace/mode/markdown",
+        "editorHide": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "jobName": "paragraph_1515683224901_-793498032",
+      "id": "20180111-150704_2032838349_q_6SHC1BMTXT1515702316",
+      "result": {
+        "code": "SUCCESS",
+        "type": "HTML",
+        "msg": "\u003cdiv class\u003d\"markdown-body\"\u003e\n\u003ch1\u003eMost Common Bigrams of Good Products\u003c/h1\u003e\n\u003cp\u003eNow let\u0026rsquo;s compute the Term Frequency of reviews of good products\u003c/p\u003e\n\u003c/div\u003e"
+      },
+      "dateCreated": "Jan 11, 2018 3:07:04 PM",
+      "dateStarted": "Jan 12, 2018 7:41:51 PM",
+      "dateFinished": "Jan 12, 2018 7:41:51 PM",
+      "status": "FINISHED",
+      "progressUpdateIntervalMs": 500
+    },
+    {
+      "text": "var goodTF \u003d new CountVectorizer().setInputCol(\"bigrams\").setOutputCol(\"countFeatures\")\nvar goodProducts \u003d newTF.filter(\"overall \u003e 4\")\nvar goodTFModel \u003d goodTF.fit(goodProducts)\nvar bigramsRDD \u003d sc.parallelize(goodTFModel.vocabulary)\nvar bigramDF \u003d bigramsRDD.zipWithIndex().toDF(\"bigram\",\"index\")\nbigramDF.show(20,false)",
+      "user": "davidgillen@precocityllc.com",
+      "dateUpdated": "Jan 12, 2018 7:41:59 PM",
+      "config": {
+        "colWidth": 12.0,
+        "graph": {
+          "mode": "table",
+          "height": 300.0,
+          "optionOpen": false,
+          "keys": [],
+          "values": [],
+          "groups": [],
+          "scatter": {}
+        },
+        "enabled": true,
+        "editorMode": "ace/mode/scala",
+        "editorHide": false
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "paragraphProgress": {
+        "jobs": [
+          {
+            "id": 7,
+            "jobUrl": "https://azure.qubole.com/cluster-proxy?encodedUrl\u003dhttp%3A%2F%2F10.0.0.4%3A8088%2Fproxy%2Fapplication_1515672864099_0012/jobs/job?spark\u003dtrue\u0026id\u003d7",
+            "numTasks": 24,
+            "numCompletedTasks": 24,
+            "stages": [
+              {
+                "id": 9,
+                "completed": true,
+                "stageUrl": "https://azure.qubole.com/cluster-proxy?encodedUrl\u003dhttp%3A%2F%2F10.0.0.4%3A8088%2Fproxy%2Fapplication_1515672864099_0012/stages/stage/?id\u003d9\u0026attempt\u003d0",
+                "numCompleteTasks": 12,
+                "numActiveTasks": 0,
+                "numFailedTasks": 0,
+                "numTotalTasks": 12
+              },
+              {
+                "id": 10,
+                "completed": true,
+                "stageUrl": "https://azure.qubole.com/cluster-proxy?encodedUrl\u003dhttp%3A%2F%2F10.0.0.4%3A8088%2Fproxy%2Fapplication_1515672864099_0012/stages/stage/?id\u003d10\u0026attempt\u003d0",
+                "numCompleteTasks": 12,
+                "numActiveTasks": 0,
+                "numFailedTasks": 0,
+                "numTotalTasks": 12
+              }
+            ],
+            "status": "Success"
+          },
+          {
+            "id": 8,
+            "jobUrl": "https://azure.qubole.com/cluster-proxy?encodedUrl\u003dhttp%3A%2F%2F10.0.0.4%3A8088%2Fproxy%2Fapplication_1515672864099_0012/jobs/job?spark\u003dtrue\u0026id\u003d8",
+            "numTasks": 24,
+            "numCompletedTasks": 12,
+            "stages": [
+              {
+                "id": 12,
+                "completed": true,
+                "stageUrl": "https://azure.qubole.com/cluster-proxy?encodedUrl\u003dhttp%3A%2F%2F10.0.0.4%3A8088%2Fproxy%2Fapplication_1515672864099_0012/stages/stage/?id\u003d12\u0026attempt\u003d0",
+                "numCompleteTasks": 12,
+                "numActiveTasks": 0,
+                "numFailedTasks": 0,
+                "numTotalTasks": 12
+              },
+              {
+                "id": 11,
+                "completed": true,
+                "stageUrl": "https://azure.qubole.com/cluster-proxy?encodedUrl\u003dhttp%3A%2F%2F10.0.0.4%3A8088%2Fproxy%2Fapplication_1515672864099_0012/stages/stage/?id\u003d11\u0026attempt\u003d0",
+                "numCompleteTasks": 0,
+                "numActiveTasks": 0,
+                "numFailedTasks": 0,
+                "numTotalTasks": 0
+              }
+            ],
+            "status": "Success"
+          },
+          {
+            "id": 9,
+            "jobUrl": "https://azure.qubole.com/cluster-proxy?encodedUrl\u003dhttp%3A%2F%2F10.0.0.4%3A8088%2Fproxy%2Fapplication_1515672864099_0012/jobs/job?spark\u003dtrue\u0026id\u003d9",
+            "numTasks": 7,
+            "numCompletedTasks": 7,
+            "stages": [
+              {
+                "id": 13,
+                "completed": true,
+                "stageUrl": "https://azure.qubole.com/cluster-proxy?encodedUrl\u003dhttp%3A%2F%2F10.0.0.4%3A8088%2Fproxy%2Fapplication_1515672864099_0012/stages/stage/?id\u003d13\u0026attempt\u003d0",
+                "numCompleteTasks": 7,
+                "numActiveTasks": 0,
+                "numFailedTasks": 0,
+                "numTotalTasks": 7
+              }
+            ],
+            "status": "Success"
+          },
+          {
+            "id": 10,
+            "jobUrl": "https://azure.qubole.com/cluster-proxy?encodedUrl\u003dhttp%3A%2F%2F10.0.0.4%3A8088%2Fproxy%2Fapplication_1515672864099_0012/jobs/job?spark\u003dtrue\u0026id\u003d10",
+            "numTasks": 1,
+            "numCompletedTasks": 1,
+            "stages": [
+              {
+                "id": 14,
+                "completed": true,
+                "stageUrl": "https://azure.qubole.com/cluster-proxy?encodedUrl\u003dhttp%3A%2F%2F10.0.0.4%3A8088%2Fproxy%2Fapplication_1515672864099_0012/stages/stage/?id\u003d14\u0026attempt\u003d0",
+                "numCompleteTasks": 1,
+                "numActiveTasks": 0,
+                "numFailedTasks": 0,
+                "numTotalTasks": 1
+              }
+            ],
+            "status": "Success"
+          }
+        ],
+        "numCompletedTasks": 44,
+        "numTasks": 56,
+        "truncated": false
+      },
+      "jobName": "paragraph_1515683277484_384895904",
+      "id": "20180111-150757_504976278_q_6SHC1BMTXT1515702316",
+      "dateCreated": "Jan 11, 2018 3:07:57 PM",
+      "dateStarted": "Jan 11, 2018 6:55:27 PM",
+      "dateFinished": "Jan 11, 2018 6:55:53 PM",
+      "status": "FINISHED",
+      "errorMessage": "",
+      "progressUpdateIntervalMs": 500
+    },
+    {
+      "text": "%md\nFor the **good** products, it is also intuitive that bigrams such as `much better`, `works great`, `highly recommend`, \u0026 `works well` are among the most common",
+      "user": "davidgillen@precocityllc.com",
+      "dateUpdated": "Jan 12, 2018 7:42:14 PM",
+      "config": {
+        "colWidth": 12.0,
+        "graph": {
+          "mode": "table",
+          "height": 300.0,
+          "optionOpen": false,
+          "keys": [],
+          "values": [],
+          "groups": [],
+          "scatter": {}
+        },
+        "enabled": true,
+        "editorMode": "ace/mode/markdown",
+        "editorHide": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "jobName": "paragraph_1515696937382_913521314",
+      "id": "20180111-185537_1951062752_q_6SHC1BMTXT1515702316",
+      "result": {
+        "code": "SUCCESS",
+        "type": "HTML",
+        "msg": "\u003cdiv class\u003d\"markdown-body\"\u003e\n\u003cp\u003eFor the \u003cstrong\u003egood\u003c/strong\u003e products, it is also intuitive that bigrams such as \u003ccode\u003emuch better\u003c/code\u003e, \u003ccode\u003eworks great\u003c/code\u003e, \u003ccode\u003ehighly recommend\u003c/code\u003e, \u0026amp; \u003ccode\u003eworks well\u003c/code\u003e are among the most common\u003c/p\u003e\n\u003c/div\u003e"
+      },
+      "dateCreated": "Jan 11, 2018 6:55:37 PM",
+      "dateStarted": "Jan 12, 2018 7:42:12 PM",
+      "dateFinished": "Jan 12, 2018 7:42:12 PM",
+      "status": "FINISHED",
+      "progressUpdateIntervalMs": 500
+    },
+    {
+      "text": "%md\n# ToDo: Finish IDF explaination and then show model training code w/o actual execution",
+      "user": "davidgillen@precocityllc.com",
+      "dateUpdated": "Jan 12, 2018 7:43:28 PM",
+      "config": {
+        "colWidth": 12.0,
+        "graph": {
+          "mode": "table",
+          "height": 300.0,
+          "optionOpen": false,
+          "keys": [],
+          "values": [],
+          "groups": [],
+          "scatter": {}
+        },
+        "enabled": true,
+        "editorMode": "ace/mode/markdown"
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "jobName": "paragraph_1515786151456_-1593875224",
+      "id": "20180112-194231_1575610508_q_6SHC1BMTXT1515702316",
+      "result": {
+        "code": "SUCCESS",
+        "type": "HTML",
+        "msg": "\u003cdiv class\u003d\"markdown-body\"\u003e\n\u003ch1\u003eToDo: Finish IDF explaination and then show model training code w/o actual execution\u003c/h1\u003e\n\u003c/div\u003e"
+      },
+      "dateCreated": "Jan 12, 2018 7:42:31 PM",
+      "dateStarted": "Jan 12, 2018 7:43:28 PM",
+      "dateFinished": "Jan 12, 2018 7:43:28 PM",
+      "status": "FINISHED",
+      "progressUpdateIntervalMs": 500
+    },
+    {
+      "config": {},
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "jobName": "paragraph_1514926961944_-1524740743",
+      "id": "20180102-210241_267837947_q_6SHC1BMTXT1515702316",
+      "dateCreated": "Jan 2, 2018 9:02:41 PM",
+      "status": "READY",
+      "errorMessage": "",
+      "progressUpdateIntervalMs": 500
+    }
+  ],
+  "name": "DryRun2",
+  "id": "6SHC1BMTXT1515702316",
+  "angularObjects": {
+    "2CZWJU1KG6631510262503868:shared_process": [],
+    "2CX6ZKXWX6631510262503831:shared_process": [],
+    "2D2QWKN8P6631515718565166:6SHC1BMTXT1515702316": [],
+    "2D5JBYWBJ6631515694945141:6SHC1BMTXT1515702316": [],
+    "2CZXHXM1R6631510262503821:shared_process": []
+  },
+  "config": {
+    "isDashboard": false
+  },
+  "info": {},
+  "source": "FCN"
+}
